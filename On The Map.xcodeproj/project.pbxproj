@@ -54,14 +54,46 @@
 		2851503F205005AA00333D4D /* On The Map */ = {
 			isa = PBXGroup;
 			children = (
+				285150572050072900333D4D /* Assets */,
+				285150562050072100333D4D /* Controllers */,
+				285150552050071A00333D4D /* Views */,
+				28515053205006F500333D4D /* Models */,
 				28515040205005AA00333D4D /* AppDelegate.swift */,
 				28515042205005AA00333D4D /* ViewController.swift */,
-				28515044205005AA00333D4D /* Main.storyboard */,
-				28515047205005AA00333D4D /* Assets.xcassets */,
-				28515049205005AA00333D4D /* LaunchScreen.storyboard */,
 				2851504C205005AA00333D4D /* Info.plist */,
 			);
 			path = "On The Map";
+			sourceTree = "<group>";
+		};
+		28515053205006F500333D4D /* Models */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Models;
+			sourceTree = "<group>";
+		};
+		285150552050071A00333D4D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Views;
+			sourceTree = "<group>";
+		};
+		285150562050072100333D4D /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Controllers;
+			sourceTree = "<group>";
+		};
+		285150572050072900333D4D /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				28515044205005AA00333D4D /* Main.storyboard */,
+				28515047205005AA00333D4D /* Assets.xcassets */,
+				28515049205005AA00333D4D /* LaunchScreen.storyboard */,
+			);
+			name = Assets;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
