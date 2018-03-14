@@ -11,7 +11,17 @@ import UIKit
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
+    // MARK: Properties
+    
     var window: UIWindow?
+    
+    var sharedSession = URLSession.shared
+    var requestToken: String? = nil
+    var sessionID: String? = nil
+    var userID: Int? = nil
+    
+    // configuration for TheMovieDB, we'll take care of this for you =)...
+    //var config = Config()
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
@@ -40,7 +50,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
+}
 
-
+// MARK: Create URL from Parameters
+extension AppDelegate {
+    
+    func udacityURLFromParameters(_ parameters: [String:AnyObject], withPathExtension: String? = nil) -> URL {
+        
+        var components = URLComponents()
+        components.scheme = Constants.UdacityDB.ApiScheme
+        components.host = Constants.UdacityDB.ApiHost
+        components.path = Constants.UdacityDB.ApiPath + (withPathExtension ?? "")
+        components.queryItems = [URLQueryItem]()
+        
+        for (key, value) in parameters {
+            let queryItem = URLQueryItem(name: key, value: "\(value)")
+            components.queryItems!.append(queryItem)
+        }
+        
+        return components.url!
+    }
 }
 
