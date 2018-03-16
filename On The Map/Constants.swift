@@ -12,41 +12,6 @@ import UIKit
 
 struct Constants {
     
-    // MARK: Udacity
-    struct UdacityDB {
-        static let ApiScheme = "http"
-        static let ApiHost = "api.themoviedb.org"
-        static let ApiPath = "/3"
-    }
-    
-    // MARK: Udacity Parameter Keys
-    struct UdacityParameterKeys {
-        static let ApiKey = "api_key"
-        static let RequestToken = "request_token"
-        static let SessionID = "session_id"
-        static let Username = "username"
-        static let Password = "password"
-    }
-    
-    // MARK: Udacity Parameter Values
-    struct UdacityParameterValues {
-        static let ApiKey = "f7eba92747a143ce49af1a4d450dd056"
-    }
-    
-    // MARK: Udacity Response Keys
-    struct TMDBResponseKeys {
-        static let Title = "title"
-        static let ID = "id"
-        static let PosterPath = "poster_path"
-        static let StatusCode = "status_code"
-        static let StatusMessage = "status_message"
-        static let SessionID = "session_id"
-        static let RequestToken = "request_token"
-        static let Success = "success"
-        static let UserID = "id"
-        static let Results = "results"
-    }
-    
     // MARK: UI
     struct UI {
         static let LoginColorTop = UIColor(red: 0.345, green: 0.839, blue: 0.988, alpha: 1.0).cgColor
@@ -65,4 +30,18 @@ struct Constants {
      static let KeyboardDidHide: Selector = "keyboardDidHide:"
      }
      */
+    
+    // Mark: Student Locations
+    struct StudentLocationKeys {
+        static let CreatedAt = "createdAt"
+        static let FirstName = "firstName"
+        static let LastName = "lastName"
+        static let Latitude = "latitude"
+        static let Longitude = "longitude"
+        static let MapString = "mapString"
+        static let MediaUrl = "mediaURL"
+        static let ObjectId = "objectId"
+        static let UniqueKey = "uniqueKey"
+        static let UpdateAt = "updatedAt"
+    }
 }
