@@ -12,6 +12,8 @@
 		28515046205005AA00333D4D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 28515044205005AA00333D4D /* Main.storyboard */; };
 		28515048205005AA00333D4D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 28515047205005AA00333D4D /* Assets.xcassets */; };
 		2851504B205005AA00333D4D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 28515049205005AA00333D4D /* LaunchScreen.storyboard */; };
+		28539F53205BD765008A68A8 /* GCDBlackBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28539F52205BD765008A68A8 /* GCDBlackBox.swift */; };
+		28539F56205BED2E008A68A8 /* MapTabBarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28539F55205BED2D008A68A8 /* MapTabBarViewController.swift */; };
 		285F7385205298280033EC3F /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 285F7384205298280033EC3F /* LoginViewController.swift */; };
 		287287292054E90A0041EF1D /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 287287282054E90A0041EF1D /* Constants.swift */; };
 /* End PBXBuildFile section */
@@ -24,6 +26,8 @@
 		28515047205005AA00333D4D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2851504A205005AA00333D4D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		2851504C205005AA00333D4D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		28539F52205BD765008A68A8 /* GCDBlackBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GCDBlackBox.swift; sourceTree = "<group>"; };
+		28539F55205BED2D008A68A8 /* MapTabBarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapTabBarViewController.swift; sourceTree = "<group>"; };
 		285F7384205298280033EC3F /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		287287282054E90A0041EF1D /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -65,6 +69,7 @@
 				28515040205005AA00333D4D /* AppDelegate.swift */,
 				28515042205005AA00333D4D /* ViewController.swift */,
 				2851504C205005AA00333D4D /* Info.plist */,
+				28539F52205BD765008A68A8 /* GCDBlackBox.swift */,
 			);
 			path = "On The Map";
 			sourceTree = "<group>";
@@ -88,6 +93,7 @@
 			isa = PBXGroup;
 			children = (
 				285F7384205298280033EC3F /* LoginViewController.swift */,
+				28539F55205BED2D008A68A8 /* MapTabBarViewController.swift */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -175,9 +181,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				285F7385205298280033EC3F /* LoginViewController.swift in Sources */,
+				28539F56205BED2E008A68A8 /* MapTabBarViewController.swift in Sources */,
 				28515043205005AA00333D4D /* ViewController.swift in Sources */,
 				28515041205005AA00333D4D /* AppDelegate.swift in Sources */,
 				287287292054E90A0041EF1D /* Constants.swift in Sources */,
+				28539F53205BD765008A68A8 /* GCDBlackBox.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -17,7 +17,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var sharedSession = URLSession.shared
     var requestToken: String? = nil
+    var accountRegistered: Bool? = nil
+    var accountKey: String? = nil
     var sessionID: String? = nil
+    var sessionExpiration: String? = nil
     var userID: Int? = nil
     
     // configuration for TheMovieDB, we'll take care of this for you =)...

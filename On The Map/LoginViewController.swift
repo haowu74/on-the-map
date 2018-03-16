@@ -94,82 +94,46 @@ class LoginViewController: UIViewController {
             }
             let range = Range(5..<data!.count)
             let newData = data?.subdata(in: range) /* subset response data! */
-            print(String(data: newData!, encoding: .utf8)!)
+            //print(String(data: newData!, encoding: .utf8)!)
+            let parsedResult: [String:AnyObject]!
+            do {
+                parsedResult = try JSONSerialization.jsonObject(with: newData!, options: .allowFragments) as! [String:AnyObject]
+                if let session = parsedResult["session"] {
+                    self.appDelegate.sessionID = (session as! [String:AnyObject])["id"] as? String
+                    self.appDelegate.sessionExpiration = (session as! [String:AnyObject])["expiration"] as? String
+                }
+                if let account = parsedResult["account"] {
+                    self.appDelegate.accountRegistered = (account as! [String:AnyObject])["registered"] as? Bool
+                    self.appDelegate.accountKey = (account as! [String:AnyObject])["key"] as? String
+                }
+                if let registered = self.appDelegate.accountRegistered {
+                    if registered {
+                        self.completeLogin();
+                    }
+                }
+                
+            } catch {
+                print("Could not parse the data as JSON: '\(newData)'")
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.setUIEnabled(true)
+            }
+            
+            
         }
         task.resume()
     }
-    /*
-    private func getRequestToken() {
-        
-        /* TASK: Get a request token, then store it (appDelegate.requestToken) and login with the token */
-        
-        /* 1. Set the parameters */
-        let methodParameters = [
-            Constants.UdacityParameterKeys.ApiKey: Constants.UdacityParameterValues.ApiKey
-        ]
-        
-        /* 2/3. Build the URL, Configure the request */
-        let request = URLRequest(url: appDelegate.udacityURLFromParameters(methodParameters as [String:AnyObject], withPathExtension: "/authentication/token/new"))
-        
-        /* 4. Make the request */
-        let task = appDelegate.sharedSession.dataTask(with: request) { (data, response, error) in
-            
-            // if an error occurs, print it and re-enable the UI
-            func displayError(_ error: String) {
-                print(error)
-                performUIUpdatesOnMain {
-                    self.setUIEnabled(true)
-                    self.debugTextLabel.text = "Login Failed (Request Token)."
-                }
-            }
-            
-            /* GUARD: Was there an error? */
-            guard (error == nil) else {
-                displayError("There was an error with your request: \(error!)")
-                return
-            }
-            
-            /* GUARD: Did we get a successful 2XX response? */
-            guard let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode >= 200 && statusCode <= 299 else {
-                displayError("Your request returned a status code other than 2xx!")
-                return
-            }
-            
-            /* GUARD: Was there any data returned? */
-            guard let data = data else {
-                displayError("No data was returned by the request!")
-                return
-            }
-            
-            /* 5. Parse the data */
-            let parsedResult: [String:AnyObject]!
-            do {
-                parsedResult = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String:AnyObject]
-            } catch {
-                displayError("Could not parse the data as JSON: '\(data)'")
-                return
-            }
-            
-            /* GUARD: Did TheMovieDB return an error? */
-            if let _ = parsedResult[Constants.TMDBResponseKeys.StatusCode] as? Int {
-                displayError("TheMovieDB returned an error. See the '\(Constants.TMDBResponseKeys.StatusCode)' and '\(Constants.TMDBResponseKeys.StatusMessage)' in \(parsedResult)")
-                return
-            }
-            
-            /* GUARD: Is the "request_token" key in parsedResult? */
-            guard let requestToken = parsedResult[Constants.TMDBResponseKeys.RequestToken] as? String else {
-                displayError("Cannot find key '\(Constants.TMDBResponseKeys.RequestToken)' in \(parsedResult)")
-                return
-            }
-            
-            /* 6. Use the data! */
-            self.appDelegate.requestToken = requestToken
-            self.loginWithToken(self.appDelegate.requestToken!)
+    
+    private func completeLogin() {
+        performUIUpdatesOnMain {
+            self.debugTextLabel.text = ""
+            self.setUIEnabled(true)
+            let controller = self.storyboard!.instantiateViewController(withIdentifier: "NavController") as! UINavigationController
+            self.present(controller, animated: true, completion: nil)
         }
-        
-        /* 7. Start the request */
-        task.resume()
-    }*/
+    }
     
 }
 
