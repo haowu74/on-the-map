@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		282E9B022061274C00152B39 /* StudentLocations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282E9B012061274C00152B39 /* StudentLocations.swift */; };
+		282E9B042061359200152B39 /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282E9B032061359200152B39 /* MapViewController.swift */; };
 		28515041205005AA00333D4D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28515040205005AA00333D4D /* AppDelegate.swift */; };
 		28515043205005AA00333D4D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28515042205005AA00333D4D /* ViewController.swift */; };
 		28515046205005AA00333D4D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 28515044205005AA00333D4D /* Main.storyboard */; };
@@ -19,6 +21,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		282E9B012061274C00152B39 /* StudentLocations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentLocations.swift; sourceTree = "<group>"; };
+		282E9B032061359200152B39 /* MapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
 		2851503D205005AA00333D4D /* On The Map.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "On The Map.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		28515040205005AA00333D4D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		28515042205005AA00333D4D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -78,6 +82,7 @@
 			isa = PBXGroup;
 			children = (
 				287287282054E90A0041EF1D /* Constants.swift */,
+				282E9B012061274C00152B39 /* StudentLocations.swift */,
 			);
 			name = Models;
 			sourceTree = "<group>";
@@ -94,6 +99,7 @@
 			children = (
 				285F7384205298280033EC3F /* LoginViewController.swift */,
 				28539F55205BED2D008A68A8 /* MapTabBarViewController.swift */,
+				282E9B032061359200152B39 /* MapViewController.swift */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -184,8 +190,10 @@
 				28539F56205BED2E008A68A8 /* MapTabBarViewController.swift in Sources */,
 				28515043205005AA00333D4D /* ViewController.swift in Sources */,
 				28515041205005AA00333D4D /* AppDelegate.swift in Sources */,
+				282E9B022061274C00152B39 /* StudentLocations.swift in Sources */,
 				287287292054E90A0041EF1D /* Constants.swift in Sources */,
 				28539F53205BD765008A68A8 /* GCDBlackBox.swift in Sources */,
+				282E9B042061359200152B39 /* MapViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -162,7 +162,7 @@
         <!--Map View-->
         <scene sceneID="gnS-fY-cHc">
             <objects>
-                <viewController id="lrF-LC-YXg" userLabel="Map View" sceneMemberID="viewController">
+                <viewController id="lrF-LC-YXg" userLabel="Map View" customClass="MapViewController" customModule="On_The_Map" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="spU-fy-Jg4">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -181,6 +181,9 @@
                         <viewLayoutGuide key="safeArea" id="VpW-xR-FnG"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="" image="MapView-Selected" selectedImage="MapView-Selected" id="vtI-j9-rpD"/>
+                    <connections>
+                        <outlet property="mapView" destination="Tzw-cV-gl3" id="dtz-hq-gcv"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="E3k-AK-EbM" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
