@@ -61,7 +61,7 @@ class MapTabBarViewController: UITabBarController {
     
     @IBAction func reloadLocations(_ sender: Any) {
         locations.removeAll()
-        var request = URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation")!)
+        var request = URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation?limit=1000")!)
         request.httpMethod = "GET"
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -124,6 +124,11 @@ class MapTabBarViewController: UITabBarController {
                 // When the array is complete, we add the annotations to the map.
                 let mapViewController = self.viewControllers?[0] as! MapViewController
                 mapViewController.mapView.addAnnotations(annotations)
+                
+                let navViewController = self.viewControllers?[1] as! UINavigationController
+                let tableViewController = navViewController.topViewController as! StudentListTableViewController
+                tableViewController.locations = self.locations
+                tableViewController.tableView.reloadData()
             }
             
             
@@ -131,44 +136,5 @@ class MapTabBarViewController: UITabBarController {
         task.resume()
     }
     
-    func loadLocations(){
-        
-        locations.removeAll()
-        
-        var request = URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation")!)
-        request.httpMethod = "GET"
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("X-Parse-Application-Id", forHTTPHeaderField: "QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr")
-        request.addValue("X-Parse-REST-API-Key", forHTTPHeaderField: "QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY")
-        
-        let session = URLSession.shared
-        let task = session.dataTask(with: request) { data, response, error in
-            if error != nil { // Handle error…
-                return
-            }
-            let range = Range(5..<data!.count)
-            let newData = data?.subdata(in: range) /* subset response data! */
-            //print(String(data: newData!, encoding: .utf8)!)
-            let parsedResult: [String:[AnyObject]]!
-            do {
-                parsedResult = try JSONSerialization.jsonObject(with: newData!, options: .allowFragments) as! [String:[AnyObject]]
-                if let result = parsedResult["results"] {
-                    var locations = (result as! [StudentLocation])
-                    
-                }
-                
-            } catch {
-                //print("Could not parse the data as JSON: '\(newData)'")
-                return
-            }
-            
-            DispatchQueue.main.async {
-                
-            }
-            
-            
-        }
-        task.resume()
-    }
+
 }
