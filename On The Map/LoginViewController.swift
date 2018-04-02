@@ -105,13 +105,14 @@ class LoginViewController: UIViewController {
                 if let account = parsedResult["account"] {
                     self.appDelegate.accountRegistered = (account as! [String:AnyObject])["registered"] as? Bool
                     self.appDelegate.accountKey = (account as! [String:AnyObject])["key"] as? String
+                    
+                    
                 }
                 if let registered = self.appDelegate.accountRegistered {
                     if registered {
                         self.completeLogin();
                     }
                 }
-                
             } catch {
                 print("Could not parse the data as JSON: '\(newData)'")
                 return

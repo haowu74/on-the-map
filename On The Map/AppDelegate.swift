@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreLocation
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -23,12 +24,29 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var sessionExpiration: String? = nil
     var userID: Int? = nil
     
+    var myLon: Double? = nil
+    var myLat: Double? = nil
+    var myCreate: String? = nil
+    var myUpdate: String? = nil
+    
+    var locManager = CLLocationManager()
+    
     // configuration for TheMovieDB, we'll take care of this for you =)...
     //var config = Config()
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        locManager.requestWhenInUseAuthorization()
+        var currentLocation: CLLocation!
+        
+        if( CLLocationManager.authorizationStatus() == CLAuthorizationStatus.authorizedWhenInUse ||
+            CLLocationManager.authorizationStatus() == CLAuthorizationStatus.authorizedWhenInUse){
+            
+            currentLocation = locManager.location
+            
+        }
+        
         return true
     }
 

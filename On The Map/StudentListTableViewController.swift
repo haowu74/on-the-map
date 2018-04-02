@@ -8,6 +8,19 @@
 
 import UIKit
 
+class StudentListTableViewCell : UITableViewCell {
+    
+    @IBOutlet weak var studentInfoLabel: UILabel!
+    
+   
+    @IBOutlet weak var studentUrl: UITextView!
+    
+    func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
+        UIApplication.shared.open(URL, options: [:])
+        return false
+    }
+}
+
 class StudentListTableViewController: UITableViewController {
 
     var locations: [StudentLocation] = []
@@ -46,11 +59,15 @@ class StudentListTableViewController: UITableViewController {
 
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "studentListCellId")
+        let cell = tableView.dequeueReusableCell(withIdentifier: "studentListCellId") as! StudentListTableViewCell
 
         // Configure the cell...
-        cell?.textLabel!.text = "\(locations[(indexPath as NSIndexPath).row].FirstName) \(locations[(indexPath as NSIndexPath).row].LastName)"
-        return cell!
+        cell.studentInfoLabel!.text = "\(locations[(indexPath as NSIndexPath).row].FirstName) \(locations[(indexPath as NSIndexPath).row].LastName)"
+        let studentUrl = "\(locations[(indexPath as NSIndexPath).row].MediaUrl)"
+        let attributedString = NSMutableAttributedString(string: studentUrl)
+        attributedString.addAttribute(.link, value: studentUrl, range: NSRange(location: 0, length: studentUrl.count))
+        cell.studentUrl!.attributedText = attributedString
+        return cell
     }
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
