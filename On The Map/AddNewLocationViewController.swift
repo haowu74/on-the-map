@@ -16,6 +16,7 @@ class AddNewLocationViewController: UIViewController {
     
     @IBAction func findLocation(_ sender: Any) {
         searchLocation()
+        
     }
     
     @IBAction func cancelAddLocation(_ sender: Any) {
@@ -54,16 +55,37 @@ class AddNewLocationViewController: UIViewController {
                     self.popupLocationNotFound()
                 }
             } else {
-                
+                self.validateWebUrl()
             }
         }
         
     }
     
     func validateWebUrl() {
-        
+        if let urlString = myWebSiteInput?.text {
+            // create NSURL instance
+            if let url = URL(string: urlString) {
+                // check if your application can open the NSURL instance
+                if !UIApplication.shared.canOpenURL(url) {
+                    popupLocationNotFound()
+                } else {
+                    self.performSegue(withIdentifier: "addStudentPositionMap", sender: self)
+                }
+            }
+        }
     }
 
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "addStudentPositionMap" {
+            let addLocationMapVC = segue.destination as! AddLocationMapViewController
+            let loc = (sender as! AddNewLocationViewController).myLocationInput.text
+            let url = (sender as! AddNewLocationViewController).myWebSiteInput.text
+            addLocationMapVC.location = loc
+            addLocationMapVC.url = url
+           
+        }
+    }
+    
     func popupLocationNotFound() {
         let alert = UIAlertController(title: "My Alert", message: "This is an alert.", preferredStyle: .alert)
 
@@ -73,4 +95,12 @@ class AddNewLocationViewController: UIViewController {
         self.present(alert, animated: true, completion: nil)
     }
 
+    func popupUrlNotValid() {
+        let alert = UIAlertController(title: "My Alert", message: "This is an alert.", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Cancel action"), style: .default, handler: { _ in
+            NSLog("The \"Cancel\" alert occured.")
+        }))
+        self.present(alert, animated: true, completion: nil)
+    }
 }

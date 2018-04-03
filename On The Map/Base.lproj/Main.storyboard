@@ -296,17 +296,17 @@
                     <connections>
                         <outlet property="myLocationInput" destination="s1i-ak-WBX" id="Z2U-1s-TvT"/>
                         <outlet property="myWebSiteInput" destination="5lX-tN-oTM" id="1cJ-Ky-dlB"/>
-                        <segue destination="Ery-xY-8i1" kind="show" id="ftq-0G-xXg"/>
+                        <segue destination="Ery-xY-8i1" kind="show" identifier="addStudentPositionMap" id="ftq-0G-xXg"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="9eC-Rv-zNY" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-110" y="741"/>
         </scene>
-        <!--View Controller-->
+        <!--Add Location Map View Controller-->
         <scene sceneID="2hV-ei-ook">
             <objects>
-                <viewController id="Ery-xY-8i1" sceneMemberID="viewController">
+                <viewController id="Ery-xY-8i1" customClass="AddLocationMapViewController" customModule="On_The_Map" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Wkl-QR-fru">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -334,6 +334,9 @@
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="hR6-4k-P5K"/>
                     </view>
+                    <connections>
+                        <outlet property="mapView" destination="lNa-XQ-xBT" id="7nj-Jg-chs"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="THY-OF-lmP" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
