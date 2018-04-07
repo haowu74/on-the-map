@@ -20,8 +20,15 @@ class AddNewLocationViewController: UIViewController {
     }
     
     @IBAction func cancelAddLocation(_ sender: Any) {
-        self.dismiss(animated: true)
+        //self.dismiss(animated: true)
+        self.navigationController?.popViewController(animated: true)
     }
+    
+    var latitude: Double?
+    var longitude: Double?
+    var newStudent: Bool?
+    var objectId: String?
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,11 +62,14 @@ class AddNewLocationViewController: UIViewController {
                     self.popupLocationNotFound()
                 }
             } else {
+                self.latitude = response?.boundingRegion.center.latitude
+                self.longitude = response?.boundingRegion.center.longitude
                 self.validateWebUrl()
             }
         }
         
     }
+    
     
     func validateWebUrl() {
         if let urlString = myWebSiteInput?.text {
@@ -80,14 +90,26 @@ class AddNewLocationViewController: UIViewController {
             let addLocationMapVC = segue.destination as! AddLocationMapViewController
             let loc = (sender as! AddNewLocationViewController).myLocationInput.text
             let url = (sender as! AddNewLocationViewController).myWebSiteInput.text
+            appDelegate.studentLocation.MapString = loc!
+            appDelegate.studentLocation.MediaUrl = url!
+            appDelegate.studentLocation.Latitude = latitude!
+            appDelegate.studentLocation.Longitude = longitude!
+            /*
             addLocationMapVC.location = loc
             addLocationMapVC.url = url
-           
+            addLocationMapVC.latitude = latitude
+            addLocationMapVC.longitude = longitude
+            
+            addLocationMapVC.newStudent = newStudent!
+            addLocationMapVC.objectId = objectId
+            */
+            
+            addLocationMapVC.newStudent = newStudent!
         }
     }
     
     func popupLocationNotFound() {
-        let alert = UIAlertController(title: "My Alert", message: "This is an alert.", preferredStyle: .alert)
+        let alert = UIAlertController(title: "New Location", message: "This is an alert.", preferredStyle: .alert)
 
         alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Cancel action"), style: .default, handler: { _ in
             NSLog("The \"Cancel\" alert occured.")
@@ -96,7 +118,7 @@ class AddNewLocationViewController: UIViewController {
     }
 
     func popupUrlNotValid() {
-        let alert = UIAlertController(title: "My Alert", message: "This is an alert.", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Overwrite Location", message: "This is an alert.", preferredStyle: .alert)
         
         alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Cancel action"), style: .default, handler: { _ in
             NSLog("The \"Cancel\" alert occured.")

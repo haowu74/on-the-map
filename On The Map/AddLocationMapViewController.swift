@@ -9,13 +9,43 @@
 import UIKit
 import MapKit
 
-class AddLocationMapViewController: UIViewController, CLLocationManagerDelegate {
+class AddLocationMapViewController: UIViewController {
 
     @IBOutlet weak var mapView: MKMapView!
-    var location: String?
-    var url: String?
-    
+
+    var newStudent: Bool = true
+
     let locationManager = CLLocationManager()
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    
+    @IBAction func submitNewLocation(_ sender: Any) {
+        
+        let location = appDelegate.studentLocation
+        var request = newStudent ? URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation")!) : URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation/\(location.ObjectId)")!)
+        request.httpMethod = newStudent ? "POST" : "PUT"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
+        request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
+        
+        request.httpBody = "{\"uniqueKey\": \"\(location.UniqueKey)\",\"firstName\": \"\(location.FirstName)\",\"lastName\": \"\(location.LastName)\",\"mapString\": \"\(location.MapString)\", \"mediaURL\": \"\(location.MediaUrl)\",\"latitude\": \(location.Latitude), \"longitude\": \(location.Longitude)}".data(using: .utf8)
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+            if error != nil { // Handle error…
+                return
+            }
+            DispatchQueue.main.async {
+               self.navigationController?.popToRootViewController(animated: true)
+            }
+            
+        }
+        task.resume()
+        
+        
+        
+    }
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,11 +60,17 @@ class AddLocationMapViewController: UIViewController, CLLocationManagerDelegate 
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.requestWhenInUseAuthorization()
-  
-        locationManager.requestLocation()
+
+        let annotation = MKPointAnnotation()
+        annotation.title = appDelegate.studentLocation.MapString
+        annotation.coordinate = CLLocationCoordinate2DMake(appDelegate.studentLocation.Latitude, appDelegate.studentLocation.Longitude)
+        self.mapView.addAnnotation(annotation)
+        
+        let span = MKCoordinateSpanMake(0.1, 0.1)
+        let region = MKCoordinateRegionMake(annotation.coordinate, span)
+        self.mapView.setRegion(region, animated: false)
+    
+
     }
 
     /*
@@ -47,22 +83,4 @@ class AddLocationMapViewController: UIViewController, CLLocationManagerDelegate 
     }
     */
     
-    func locationManager(manager: CLLocationManager, didChangeAuthorizationStatus status: CLAuthorizationStatus) {
-        if status == .authorizedWhenInUse {
-            locationManager.requestLocation()
-        }
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.first {
-            let span = MKCoordinateSpanMake(0.05, 0.05)
-            let region = MKCoordinateRegion(center: location.coordinate, span: span)
-            mapView.setRegion(region, animated: true)
-        }
-    }
-    
-    func locationManager(manager: CLLocationManager, didFailWithError error: Error) {
-        print("error:: (error)")
-    }
-
 }

@@ -9,16 +9,14 @@
 import Foundation
 
 struct StudentLocation {
-    let CreatedAt: String
-    let FirstName: String
-    let LastName: String
-    let Latitude: Double
-    let Longitude: Double
-    let MapString: String
-    let MediaUrl: String
-    let ObjectId: String
-    let UniqueKey: String
-    let UpdatedAt: String
-    
-
+    var CreatedAt: String = ""
+    var FirstName: String = ""
+    var LastName: String = ""
+    var Latitude: Double = 0
+    var Longitude: Double = 0
+    var MapString: String = ""
+    var MediaUrl: String = ""
+    var ObjectId: String = ""
+    var UniqueKey: String = ""
+    var UpdatedAt: String = ""
 }

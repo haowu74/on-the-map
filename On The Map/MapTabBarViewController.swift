@@ -13,9 +13,12 @@ class MapTabBarViewController: UITabBarController {
     
     var locations: [StudentLocation] = []
     
+    var newStudent: Bool = true
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        updateLocations()
         // Do any additional setup after loading the view.
     }
 
@@ -61,22 +64,102 @@ class MapTabBarViewController: UITabBarController {
     
     
     @IBAction func addNewLocation(_ sender: Any) {
-        let alert = UIAlertController(title: "My Alert", message: "This is an alert.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: NSLocalizedString("Overwrite", comment: "Default action"), style: .default, handler: { _ in
-            NSLog("The \"Overwrite\" alert occured.")
-            self.performSegue(withIdentifier: "showStudentPositionOverwrite", sender: nil)
-        }))
-        alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: "Cancel action"), style: .cancel, handler: { _ in
-            NSLog("The \"Cancel\" alert occured.")
-        }))
-        self.present(alert, animated: true, completion: nil)
+        checkLocationExist()
     }
     
     
     
     @IBAction func reloadLocations(_ sender: Any) {
+        updateLocations()
+    }
+    
+    //Check if the Student has already existed
+    func checkLocationExist() {
+        
+        let uniqueId = appDelegate.accountKey
+        
+        let urlString = "https://parse.udacity.com/parse/classes/StudentLocation?where=%7B%22uniqueKey%22%3A%22\(uniqueId!)%22%7D"
+        let url = URL(string: urlString)
+        var request = URLRequest(url: url!)
+        request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
+        request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+            if error != nil { // Handle error
+                return
+            }
+            let parsedResult: [String:[AnyObject]]!
+            do {
+                parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as? [String:[AnyObject]]
+                if let results = parsedResult["results"] {
+                    if results.count > 0 {
+                        self.newStudent = false
+                        let result = results[0]
+                        self.appDelegate.studentLocation.CreatedAt = result["createdAt"] as! String
+                        self.appDelegate.studentLocation.FirstName = result["firstName"] as? String == nil ? "" : result["firstName"] as! String
+                        self.appDelegate.studentLocation.LastName = result["lastName"] as? String == nil ? "" : result["lastName"] as! String
+                        self.appDelegate.studentLocation.Latitude = result["latitude"] as? Double == nil ? 0 : result["latitude"] as! Double
+                        self.appDelegate.studentLocation.Longitude = result["longitude"] as? Double == nil ? 0 : result["longitude"] as! Double
+                        self.appDelegate.studentLocation.MapString = result["mapString"] as? String == nil ? "" : result["mapString"] as! String
+                        self.appDelegate.studentLocation.MediaUrl = result["mediaURL"] as? String == nil ? "" : result["mediaURL"] as! String
+                        self.appDelegate.studentLocation.ObjectId = result["objectId"] as! String
+                        self.appDelegate.studentLocation.UniqueKey = result["uniqueKey"] as! String
+                        self.appDelegate.studentLocation.UpdatedAt = result["updatedAt"] as! String
+                        
+                    } else {
+                        self.newStudent = true
+                    }
+                }
+                
+            } catch {
+                //print("Could not parse the data as JSON: '\(newData)'")
+                return
+            }
+        }
+        DispatchQueue.main.async {
+            self.confirmAddLocation(newLocation: self.newStudent)
+        }
+        task.resume()
+    }
+
+    func confirmAddLocation(newLocation: Bool) {
+        if newLocation {
+            let alert = UIAlertController(title: "My Alert", message: "This is an alert.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Overwrite", comment: "Default action"), style: .default, handler: { _ in
+                NSLog("The \"Overwrite\" alert occured.")
+                self.performSegue(withIdentifier: "showStudentPositionOverwrite", sender: nil)
+            }))
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: "Cancel action"), style: .cancel, handler: { _ in
+                NSLog("The \"Cancel\" alert occured.")
+            }))
+            self.present(alert, animated: true, completion: nil)
+        } else {
+            let alert = UIAlertController(title: "My Alert", message: "This is an alert.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Overwrite", comment: "Default action"), style: .default, handler: { _ in
+                NSLog("The \"Overwrite\" alert occured.")
+                self.performSegue(withIdentifier: "showStudentPositionOverwrite", sender: nil)
+            }))
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: "Cancel action"), style: .cancel, handler: { _ in
+                NSLog("The \"Cancel\" alert occured.")
+            }))
+            self.present(alert, animated: true, completion: nil)
+        }
+
+        
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showStudentPositionOverwrite" {
+            //let navController = segue.destination as! UINavigationController
+            //let addLocationVC = navController.viewControllers[0] as! AddNewLocationViewController
+            let addLocationVC = segue.destination as! AddNewLocationViewController
+            addLocationVC.newStudent = newStudent
+        }
+    }
+    
+    func updateLocations() {
         locations.removeAll()
-        var request = URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation?limit=100")!)
+        var request = URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation?limit=1000")!)
         request.httpMethod = "GET"
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -87,7 +170,7 @@ class MapTabBarViewController: UITabBarController {
             if error != nil { // Handle error…
                 return
             }
-
+            
             //print(String(data: newData!, encoding: .utf8)!)
             let parsedResult: [String:[AnyObject]]!
             do {
@@ -97,8 +180,8 @@ class MapTabBarViewController: UITabBarController {
                         let location = StudentLocation(CreatedAt: result["createdAt"] as! String,
                                                        FirstName: result["firstName"] as? String == nil ? "" : result["firstName"] as! String,
                                                        LastName: result["lastName"] as? String == nil ? "" : result["lastName"] as! String,
-                                                       Latitude: result["latitude"] as? String == nil ? 0 : result["latitude"] as! Double,
-                                                       Longitude: result["longitude"] as? String == nil ? 0 : result["longitude"] as! Double,
+                                                       Latitude: result["latitude"] as? Double == nil ? 0 : result["latitude"] as! Double,
+                                                       Longitude: result["longitude"] as? Double == nil ? 0 : result["longitude"] as! Double,
                                                        MapString: result["mapString"] as? String == nil ? "" : result["mapString"] as! String,
                                                        MediaUrl: result["mediaURL"] as? String == nil ? "" : result["mediaURL"] as! String,
                                                        ObjectId: result["objectId"] as! String,
@@ -146,6 +229,7 @@ class MapTabBarViewController: UITabBarController {
                     
                     // Finally we place the annotation in an array of annotations.
                     annotations.append(annotation)
+                    
                 }
                 
                 // When the array is complete, we add the annotations to the map.
@@ -158,13 +242,7 @@ class MapTabBarViewController: UITabBarController {
                 tableViewController.tableView.reloadData()
             }
             
-            
         }
         task.resume()
     }
-    
-    func addStudentLocation() {
-        
-    }
-
 }

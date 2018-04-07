@@ -14,8 +14,7 @@ class LoginViewController: UIViewController {
     
     // MARK: Properties
     
-    var appDelegate: AppDelegate!
-    var keyboardOnScreen = false
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
     
     // MARK: Outlets
     
@@ -31,15 +30,7 @@ class LoginViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // get the app delegate
-        appDelegate = UIApplication.shared.delegate as! AppDelegate
-        
         configureUI()
-        
-        subscribeToNotification(.UIKeyboardWillShow, selector: #selector(keyboardWillShow))
-        subscribeToNotification(.UIKeyboardWillHide, selector: #selector(keyboardWillHide))
-        subscribeToNotification(.UIKeyboardDidShow, selector: #selector(keyboardDidShow))
-        subscribeToNotification(.UIKeyboardDidHide, selector: #selector(keyboardDidHide))
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -101,10 +92,12 @@ class LoginViewController: UIViewController {
                 if let session = parsedResult["session"] {
                     self.appDelegate.sessionID = (session as! [String:AnyObject])["id"] as? String
                     self.appDelegate.sessionExpiration = (session as! [String:AnyObject])["expiration"] as? String
+                    
                 }
                 if let account = parsedResult["account"] {
                     self.appDelegate.accountRegistered = (account as! [String:AnyObject])["registered"] as? Bool
                     self.appDelegate.accountKey = (account as! [String:AnyObject])["key"] as? String
+                    self.appDelegate.studentLocation.UniqueKey = self.appDelegate.accountKey!
                     
                     
                 }
@@ -114,7 +107,6 @@ class LoginViewController: UIViewController {
                     }
                 }
             } catch {
-                print("Could not parse the data as JSON: '\(newData)'")
                 return
             }
             
@@ -147,30 +139,6 @@ extension LoginViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
-    }
-    
-    // MARK: Show/Hide Keyboard
-    
-    @objc func keyboardWillShow(_ notification: Notification) {
-        if !keyboardOnScreen {
-            view.frame.origin.y -= keyboardHeight(notification)
-            
-        }
-    }
-    
-    @objc func keyboardWillHide(_ notification: Notification) {
-        if keyboardOnScreen {
-            view.frame.origin.y += keyboardHeight(notification)
-            
-        }
-    }
-    
-    @objc func keyboardDidShow(_ notification: Notification) {
-        keyboardOnScreen = true
-    }
-    
-    @objc func keyboardDidHide(_ notification: Notification) {
-        keyboardOnScreen = false
     }
     
     private func keyboardHeight(_ notification: Notification) -> CGFloat {
@@ -244,4 +212,6 @@ private extension LoginViewController {
     func unsubscribeFromAllNotifications() {
         NotificationCenter.default.removeObserver(self)
     }
+    
+
 }

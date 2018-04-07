@@ -31,6 +31,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var locManager = CLLocationManager()
     
+    var studentLocation = StudentLocation()
+    
     // configuration for TheMovieDB, we'll take care of this for you =)...
     //var config = Config()
 
