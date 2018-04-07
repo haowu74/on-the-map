@@ -37,12 +37,8 @@ class AddLocationMapViewController: UIViewController {
             DispatchQueue.main.async {
                self.navigationController?.popToRootViewController(animated: true)
             }
-            
         }
         task.resume()
-        
-        
-        
     }
     
     
@@ -69,18 +65,5 @@ class AddLocationMapViewController: UIViewController {
         let span = MKCoordinateSpanMake(0.1, 0.1)
         let region = MKCoordinateRegionMake(annotation.coordinate, span)
         self.mapView.setRegion(region, animated: false)
-    
-
     }
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-    
 }

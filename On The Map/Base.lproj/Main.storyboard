@@ -388,6 +388,9 @@
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     </tabBar>
                     <connections>
+                        <outlet property="addLocationBtn" destination="cs2-9W-ONb" id="4Xr-mb-hQQ"/>
+                        <outlet property="logoutBtn" destination="p1g-9O-1Z2" id="bx4-Lj-nst"/>
+                        <outlet property="reloadLocationBtn" destination="nkl-xj-7U7" id="daP-5u-CTJ"/>
                         <segue destination="lrF-LC-YXg" kind="relationship" relationship="viewControllers" id="m7u-Gv-bxX"/>
                         <segue destination="GxB-Pc-pd2" kind="show" identifier="showStudentPositionOverwrite" id="xb5-ld-tii"/>
                         <segue destination="BHM-KS-QLm" kind="relationship" relationship="viewControllers" id="fUG-Mv-0Ok"/>

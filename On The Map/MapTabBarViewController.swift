@@ -11,6 +11,10 @@ import MapKit
 
 class MapTabBarViewController: UITabBarController {
     
+    @IBOutlet weak var addLocationBtn: UIBarButtonItem!
+    @IBOutlet weak var reloadLocationBtn: UIBarButtonItem!
+    @IBOutlet weak var logoutBtn: UIBarButtonItem!
+    
     var locations: [StudentLocation] = []
     
     var newStudent: Bool = true
@@ -18,15 +22,10 @@ class MapTabBarViewController: UITabBarController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setUI(enable: false)
+        checkLocationExist()
         updateLocations()
-        // Do any additional setup after loading the view.
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
 
     /*
     // MARK: - Navigation
@@ -53,20 +52,15 @@ class MapTabBarViewController: UITabBarController {
             if error != nil { // Handle error…
                 return
             }
-            let range = Range(5..<data!.count)
-            let newData = data?.subdata(in: range) /* subset response data! */
-            print(String(data: newData!, encoding: .utf8)!)
-            
-            self.dismiss(animated: true, completion: nil)
-            
             self.appDelegate.deleteLocation()
         }
         task.resume()
+        self.dismiss(animated: true, completion: nil)
     }
     
     
     @IBAction func addNewLocation(_ sender: Any) {
-        checkLocationExist()
+        confirmAddLocation(newLocation: self.newStudent)
     }
     
     
@@ -98,30 +92,23 @@ class MapTabBarViewController: UITabBarController {
                         self.newStudent = false
                         let result = results[0]
                         self.appDelegate.studentLocation.CreatedAt = result["createdAt"] as! String
-                        self.appDelegate.studentLocation.FirstName = result["firstName"] as? String == nil ? "" : result["firstName"] as! String
-                        //self.appDelegate.studentLocation.LastName = result["lastName"] as? String == nil ? "" : result["lastName"] as! String
-                        //self.appDelegate.studentLocation.Latitude = result["latitude"] as? Double == nil ? 0 : result["latitude"] as! Double
+                        self.appDelegate.studentLocation.Latitude = result["latitude"] as? Double == nil ? 0 : result["latitude"] as! Double
                         self.appDelegate.studentLocation.Longitude = result["longitude"] as? Double == nil ? 0 : result["longitude"] as! Double
                         self.appDelegate.studentLocation.MapString = result["mapString"] as? String == nil ? "" : result["mapString"] as! String
                         self.appDelegate.studentLocation.MediaUrl = result["mediaURL"] as? String == nil ? "" : result["mediaURL"] as! String
                         self.appDelegate.studentLocation.ObjectId = result["objectId"] as! String
                         self.appDelegate.studentLocation.UniqueKey = result["uniqueKey"] as! String
                         self.appDelegate.studentLocation.UpdatedAt = result["updatedAt"] as! String
-                        
                     } else {
                         self.newStudent = true
-
                     }
                 }
-                
+                DispatchQueue.main.async {
+                    self.setUI(enable: true)
+                }
             } catch {
-                //print("Could not parse the data as JSON: '\(newData)'")
                 return
             }
-            DispatchQueue.main.async {
-                self.confirmAddLocation(newLocation: self.newStudent)
-            }
-            
         }
         task.resume()
     }
@@ -187,7 +174,6 @@ class MapTabBarViewController: UITabBarController {
                 }
                 
             } catch {
-                //print("Could not parse the data as JSON: '\(newData)'")
                 return
             }
             
@@ -240,5 +226,10 @@ class MapTabBarViewController: UITabBarController {
         task.resume()
     }
     
+    func setUI(enable: Bool) {
+        logoutBtn.isEnabled = enable
+        reloadLocationBtn.isEnabled = enable
+        addLocationBtn.isEnabled = enable
+    }
     
 }
