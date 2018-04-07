@@ -10,10 +10,12 @@ import UIKit
 
 class StudentListTableViewCell : UITableViewCell {
     
+  
     @IBOutlet weak var studentInfoLabel: UILabel!
     
    
     @IBOutlet weak var studentUrl: UITextView!
+    
     
     func textView(_ textView: UITextView, shouldInteractWith URL: URL, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
         UIApplication.shared.open(URL, options: [:])
@@ -27,7 +29,7 @@ class StudentListTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+ 
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
@@ -72,6 +74,10 @@ class StudentListTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 50
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 0
     }
 
     /*

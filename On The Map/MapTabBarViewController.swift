@@ -58,6 +58,8 @@ class MapTabBarViewController: UITabBarController {
             print(String(data: newData!, encoding: .utf8)!)
             
             self.dismiss(animated: true, completion: nil)
+            
+            self.appDelegate.deleteLocation()
         }
         task.resume()
     }
@@ -97,8 +99,8 @@ class MapTabBarViewController: UITabBarController {
                         let result = results[0]
                         self.appDelegate.studentLocation.CreatedAt = result["createdAt"] as! String
                         self.appDelegate.studentLocation.FirstName = result["firstName"] as? String == nil ? "" : result["firstName"] as! String
-                        self.appDelegate.studentLocation.LastName = result["lastName"] as? String == nil ? "" : result["lastName"] as! String
-                        self.appDelegate.studentLocation.Latitude = result["latitude"] as? Double == nil ? 0 : result["latitude"] as! Double
+                        //self.appDelegate.studentLocation.LastName = result["lastName"] as? String == nil ? "" : result["lastName"] as! String
+                        //self.appDelegate.studentLocation.Latitude = result["latitude"] as? Double == nil ? 0 : result["latitude"] as! Double
                         self.appDelegate.studentLocation.Longitude = result["longitude"] as? Double == nil ? 0 : result["longitude"] as! Double
                         self.appDelegate.studentLocation.MapString = result["mapString"] as? String == nil ? "" : result["mapString"] as! String
                         self.appDelegate.studentLocation.MediaUrl = result["mediaURL"] as? String == nil ? "" : result["mediaURL"] as! String
@@ -108,6 +110,7 @@ class MapTabBarViewController: UITabBarController {
                         
                     } else {
                         self.newStudent = true
+
                     }
                 }
                 
@@ -115,37 +118,29 @@ class MapTabBarViewController: UITabBarController {
                 //print("Could not parse the data as JSON: '\(newData)'")
                 return
             }
-        }
-        DispatchQueue.main.async {
-            self.confirmAddLocation(newLocation: self.newStudent)
+            DispatchQueue.main.async {
+                self.confirmAddLocation(newLocation: self.newStudent)
+            }
+            
         }
         task.resume()
     }
 
     func confirmAddLocation(newLocation: Bool) {
+        
         if newLocation {
-            let alert = UIAlertController(title: "My Alert", message: "This is an alert.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Overwrite", comment: "Default action"), style: .default, handler: { _ in
-                NSLog("The \"Overwrite\" alert occured.")
-                self.performSegue(withIdentifier: "showStudentPositionOverwrite", sender: nil)
-            }))
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: "Cancel action"), style: .cancel, handler: { _ in
-                NSLog("The \"Cancel\" alert occured.")
-            }))
-            self.present(alert, animated: true, completion: nil)
+            //If you have not set location yet
+            self.performSegue(withIdentifier: "showStudentPositionOverwrite", sender: nil)
         } else {
-            let alert = UIAlertController(title: "My Alert", message: "This is an alert.", preferredStyle: .alert)
+            //If you have already set a location
+            let message = "User \"\(appDelegate.studentLocation.FirstName) \(appDelegate.studentLocation.LastName)\" Has Already Posted a Student Location. Would You Like to Overwrite Their Location?"
+            let alert = UIAlertController(title: "Overwrite Location", message: message, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: NSLocalizedString("Overwrite", comment: "Default action"), style: .default, handler: { _ in
-                NSLog("The \"Overwrite\" alert occured.")
                 self.performSegue(withIdentifier: "showStudentPositionOverwrite", sender: nil)
             }))
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: "Cancel action"), style: .cancel, handler: { _ in
-                NSLog("The \"Cancel\" alert occured.")
-            }))
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: "Cancel action"), style: .cancel, handler: nil))
             self.present(alert, animated: true, completion: nil)
         }
-
-        
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -236,8 +231,7 @@ class MapTabBarViewController: UITabBarController {
                 let mapViewController = self.viewControllers?[0] as! MapViewController
                 mapViewController.mapView.addAnnotations(annotations)
                 mapViewController.mapView.delegate = mapViewController
-                let navViewController = self.viewControllers?[1] as! UINavigationController
-                let tableViewController = navViewController.topViewController as! StudentListTableViewController
+                let tableViewController = self.viewControllers?[1] as! StudentListTableViewController
                 tableViewController.locations = self.locations
                 tableViewController.tableView.reloadData()
             }
@@ -245,4 +239,6 @@ class MapTabBarViewController: UITabBarController {
         }
         task.resume()
     }
+    
+    
 }

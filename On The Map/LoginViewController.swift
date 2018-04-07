@@ -110,9 +110,7 @@ class LoginViewController: UIViewController {
                 return
             }
             
-            DispatchQueue.main.async {
-                self.setUIEnabled(true)
-            }
+            self.getUserName()
             
             
         }
@@ -126,6 +124,47 @@ class LoginViewController: UIViewController {
             let controller = self.storyboard!.instantiateViewController(withIdentifier: "NavController") as! UINavigationController
             self.present(controller, animated: true, completion: nil)
         }
+    }
+    
+    func getUserName() {
+        let userId = appDelegate.studentLocation.UniqueKey
+        var request = URLRequest(url: URL(string: "https://www.udacity.com/api/users/\(userId)")!)
+        request.httpMethod = "GET"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+            if error != nil { // Handle error…
+                return
+            }
+            let range = Range(5..<data!.count)
+            let newData = data?.subdata(in: range) /* subset response data! */
+
+            let parsedResult: [String:AnyObject]!
+            do {
+                parsedResult = try JSONSerialization.jsonObject(with: newData!, options: .allowFragments) as! [String:AnyObject]
+                if let user = parsedResult["user"] {
+                    if let lastName = user["last_name"] {
+                        self.appDelegate.studentLocation.LastName = lastName as! String
+                    }
+                    if let firstName = user["first_name"] {
+                        self.appDelegate.studentLocation.FirstName = firstName as! String
+                    }
+                    
+                }
+
+            } catch {
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.setUIEnabled(true)
+            }
+            
+            
+        }
+        task.resume()
     }
     
 }
@@ -195,7 +234,6 @@ private extension LoginViewController {
         textField.leftViewMode = .always
         textField.backgroundColor = Constants.UI.GreyColor
         textField.textColor = Constants.UI.BlueColor
-        //textField.attributedPlaceholder = NSAttributedString(string: textField.placeholder!, attributes: [NSAttributedStringKey.foregroundColor: UIColor.white])
         textField.tintColor = Constants.UI.BlueColor
         textField.delegate = self
     }
