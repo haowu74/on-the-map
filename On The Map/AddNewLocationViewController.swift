@@ -98,18 +98,14 @@ private extension AddNewLocationViewController {
     //Pop up dialogue if the location can't be found
     func popupLocationNotFound() {
         let alert = UIAlertController(title: "Location Not Found", message: "Could Not Geocode this String.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: "Cancel action"), style: .default, handler: { _ in
-            NSLog("The \"Cancel\" alert occured.")
-        }))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: "Cancel action"), style: .default, handler: nil))
         self.present(alert, animated: true, completion: nil)
     }
 
     //Pop up dialogue if the URL is badly formed
     func popupUrlNotValid() {
         let alert = UIAlertController(title: "Location Not Found", message: "Invalid Link. Include HTTP(s)://.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: "Cancel action"), style: .default, handler: { _ in
-            NSLog("The \"Cancel\" alert occured.")
-        }))
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: "Cancel action"), style: .default, handler: nil))
         self.present(alert, animated: true, completion: nil)
     }
 }

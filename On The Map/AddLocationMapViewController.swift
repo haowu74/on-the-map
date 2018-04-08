@@ -29,7 +29,8 @@ class AddLocationMapViewController: UIViewController {
         request.httpBody = "{\"uniqueKey\": \"\(location.UniqueKey)\",\"firstName\": \"\(location.FirstName)\",\"lastName\": \"\(location.LastName)\",\"mapString\": \"\(location.MapString)\", \"mediaURL\": \"\(location.MediaUrl)\",\"latitude\": \(location.Latitude), \"longitude\": \(location.Longitude)}".data(using: .utf8)
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
-            if error != nil { // Handle error…
+            if error != nil {
+                self.addLocationFailed()
                 return
             }
             performUIUpdatesOnMain {
@@ -56,5 +57,17 @@ class AddLocationMapViewController: UIViewController {
         let span = MKCoordinateSpanMake(0.1, 0.1)
         let region = MKCoordinateRegionMake(annotation.coordinate, span)
         self.mapView.setRegion(region, animated: false)
+    }
+}
+
+// MARK: AddLocationMapViewController UI Functions
+
+private extension AddLocationMapViewController {
+    
+    func addLocationFailed() {
+        let message = "New Location Cannot be Submit to Server."
+        let alert = UIAlertController(title: "Submit Location Failed.", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: "Cancel Log In"), style: .cancel, handler: nil))
+        self.present(alert, animated: true, completion: nil)
     }
 }
