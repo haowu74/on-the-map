@@ -11,31 +11,14 @@ import MapKit
 
 class MapTabBarViewController: UITabBarController {
     
+    // MARK: IBOutlets
+    
     @IBOutlet weak var addLocationBtn: UIBarButtonItem!
     @IBOutlet weak var reloadLocationBtn: UIBarButtonItem!
     @IBOutlet weak var logoutBtn: UIBarButtonItem!
     
-    var locations: [StudentLocation] = []
-    
-    var newStudent: Bool = true
-    let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        setUI(enable: false)
-        checkLocationExist()
-        updateLocations()
-    }
+    // MARK: IBActions
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
     @IBAction func logoutButtonTouched(_ sender: Any) {
         var request = URLRequest(url: URL(string: "https://www.udacity.com/api/session")!)
         request.httpMethod = "DELETE"
@@ -49,31 +32,51 @@ class MapTabBarViewController: UITabBarController {
         }
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
-            if error != nil { // Handle error…
+            if error != nil {
                 return
             }
+            // Delete location when log off
             self.appDelegate.deleteLocation()
         }
         task.resume()
         self.dismiss(animated: true, completion: nil)
     }
     
-    
     @IBAction func addNewLocation(_ sender: Any) {
         confirmAddLocation(newLocation: self.newStudent)
     }
-    
-    
     
     @IBAction func reloadLocations(_ sender: Any) {
         updateLocations()
     }
     
+    // MARK: Properties
+    var locations: [StudentLocation] = []
+    var newStudent: Bool = true
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    
+    // MARK: Life Cycle
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setUI(enable: false)
+        checkLocationExist()
+        updateLocations()
+    }
+    
+    // Function of UIViewController
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showStudentPositionOverwrite" {
+            let addLocationVC = segue.destination as! AddNewLocationViewController
+            addLocationVC.newStudent = newStudent
+        }
+    }
+}
+
+private extension MapTabBarViewController {
+
     //Check if the Student has already existed
     func checkLocationExist() {
-        
         let uniqueId = appDelegate.accountKey
-        
         let urlString = "https://parse.udacity.com/parse/classes/StudentLocation?where=%7B%22uniqueKey%22%3A%22\(uniqueId!)%22%7D"
         let url = URL(string: urlString)
         var request = URLRequest(url: url!)
@@ -81,13 +84,14 @@ class MapTabBarViewController: UITabBarController {
         request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
-            if error != nil { // Handle error
+            if error != nil {
                 return
             }
             let parsedResult: [String:[AnyObject]]!
             do {
                 parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as? [String:[AnyObject]]
                 if let results = parsedResult["results"] {
+                    //check if the user has already posted a location
                     if results.count > 0 {
                         self.newStudent = false
                         let result = results[0]
@@ -103,7 +107,7 @@ class MapTabBarViewController: UITabBarController {
                         self.newStudent = true
                     }
                 }
-                DispatchQueue.main.async {
+                performUIUpdatesOnMain {
                     self.setUI(enable: true)
                 }
             } catch {
@@ -113,32 +117,7 @@ class MapTabBarViewController: UITabBarController {
         task.resume()
     }
 
-    func confirmAddLocation(newLocation: Bool) {
-        
-        if newLocation {
-            //If you have not set location yet
-            self.performSegue(withIdentifier: "showStudentPositionOverwrite", sender: nil)
-        } else {
-            //If you have already set a location
-            let message = "User \"\(appDelegate.studentLocation.FirstName) \(appDelegate.studentLocation.LastName)\" Has Already Posted a Student Location. Would You Like to Overwrite Their Location?"
-            let alert = UIAlertController(title: "Overwrite Location", message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Overwrite", comment: "Default action"), style: .default, handler: { _ in
-                self.performSegue(withIdentifier: "showStudentPositionOverwrite", sender: nil)
-            }))
-            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: "Cancel action"), style: .cancel, handler: nil))
-            self.present(alert, animated: true, completion: nil)
-        }
-    }
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showStudentPositionOverwrite" {
-            //let navController = segue.destination as! UINavigationController
-            //let addLocationVC = navController.viewControllers[0] as! AddNewLocationViewController
-            let addLocationVC = segue.destination as! AddNewLocationViewController
-            addLocationVC.newStudent = newStudent
-        }
-    }
-    
+    //Get 1000 locations from the API
     func updateLocations() {
         locations.removeAll()
         var request = URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation?limit=1000")!)
@@ -149,7 +128,10 @@ class MapTabBarViewController: UITabBarController {
         request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
-            if error != nil { // Handle error…
+            if error != nil {
+                performUIUpdatesOnMain {
+                    self.updateLocationsFailed()
+                }
                 return
             }
             
@@ -174,57 +156,22 @@ class MapTabBarViewController: UITabBarController {
                 }
                 
             } catch {
+                performUIUpdatesOnMain {
+                    self.updateLocationsFailed()
+                }
                 return
             }
-            
-            DispatchQueue.main.async {
-                var annotations = [MKPointAnnotation]()
-                
-                // The "locations" array is loaded with the sample data below. We are using the dictionaries
-                // to create map annotations. This would be more stylish if the dictionaries were being
-                // used to create custom structs. Perhaps StudentLocation structs.
-                
-                for dictionary in self.locations {
-                    
-                    // Notice that the float values are being used to create CLLocationDegree values.
-                    // This is a version of the Double type.
-                    let lat = CLLocationDegrees(dictionary.Latitude)
-                    let long = CLLocationDegrees(dictionary.Longitude)
-                    
-                    // The lat and long are used to create a CLLocationCoordinates2D instance.
-                    let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
-                    
-                    let first = dictionary.FirstName
-                    let last = dictionary.LastName
-                    let mediaURL = dictionary.MediaUrl
-                    
-                    // Here we create the annotation and set its coordiate, title, and subtitle properties
-                    let annotation = MKPointAnnotation()
-                    annotation.coordinate = coordinate
-                    annotation.title = "\(first) \(last)"
-                    
-                    let attributedString = NSMutableAttributedString(string: mediaURL)
-                    attributedString.addAttribute(.link, value: mediaURL, range: NSRange(location: 0, length: mediaURL.count))
-                    
-                    annotation.subtitle = mediaURL
-                    
-                    // Finally we place the annotation in an array of annotations.
-                    annotations.append(annotation)
-                    
-                }
-                
-                // When the array is complete, we add the annotations to the map.
-                let mapViewController = self.viewControllers?[0] as! MapViewController
-                mapViewController.mapView.addAnnotations(annotations)
-                mapViewController.mapView.delegate = mapViewController
-                let tableViewController = self.viewControllers?[1] as! StudentListTableViewController
-                tableViewController.locations = self.locations
-                tableViewController.tableView.reloadData()
+            performUIUpdatesOnMain {
+                self.updateLoactionsToMapAndTable()
             }
-            
         }
         task.resume()
     }
+}
+
+// MARK: - UI functions
+
+private extension MapTabBarViewController {
     
     func setUI(enable: Bool) {
         logoutBtn.isEnabled = enable
@@ -232,4 +179,68 @@ class MapTabBarViewController: UITabBarController {
         addLocationBtn.isEnabled = enable
     }
     
+    func confirmAddLocation(newLocation: Bool) {
+        if newLocation {
+            //If you have not set location yet
+            self.performSegue(withIdentifier: "showStudentPositionOverwrite", sender: nil)
+        } else {
+            //If you have already set a location
+            let message = "User \"\(appDelegate.studentLocation.FirstName) \(appDelegate.studentLocation.LastName)\" Has Already Posted a Student Location. Would You Like to Overwrite Their Location?"
+            let alert = UIAlertController(title: "Overwrite Location", message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Overwrite", comment: "Default action"), style: .default, handler: { _ in
+                self.performSegue(withIdentifier: "showStudentPositionOverwrite", sender: nil)
+            }))
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Cancel", comment: "Cancel action"), style: .cancel, handler: nil))
+            self.present(alert, animated: true, completion: nil)
+        }
+    }
+    
+    func updateLoactionsToMapAndTable() {
+        var annotations = [MKPointAnnotation]()
+        
+        for dictionary in self.locations {
+            
+            // Notice that the float values are being used to create CLLocationDegree values.
+            // This is a version of the Double type.
+            let lat = CLLocationDegrees(dictionary.Latitude)
+            let long = CLLocationDegrees(dictionary.Longitude)
+            
+            // The lat and long are used to create a CLLocationCoordinates2D instance.
+            let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
+            
+            let first = dictionary.FirstName
+            let last = dictionary.LastName
+            let mediaURL = dictionary.MediaUrl
+            
+            // Here we create the annotation and set its coordiate, title, and subtitle properties
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = coordinate
+            annotation.title = "\(first) \(last)"
+            
+            let attributedString = NSMutableAttributedString(string: mediaURL)
+            attributedString.addAttribute(.link, value: mediaURL, range: NSRange(location: 0, length: mediaURL.count))
+            
+            annotation.subtitle = mediaURL
+            
+            // Finally we place the annotation in an array of annotations.
+            annotations.append(annotation)
+            
+        }
+        
+        // When the array is complete, we add the annotations to the map.
+        let mapViewController = self.viewControllers?[0] as! MapViewController
+        mapViewController.mapView.addAnnotations(annotations)
+        mapViewController.mapView.delegate = mapViewController
+        let tableViewController = self.viewControllers?[1] as! StudentListTableViewController
+        tableViewController.locations = self.locations
+        tableViewController.tableView.reloadData()
+    }
+    
+    //Load student locations failed
+    func updateLocationsFailed() {
+        let message = "There was an error retrieving student data."
+        let alert = UIAlertController(title: "Network Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: "Network Error"), style: .cancel, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
 }

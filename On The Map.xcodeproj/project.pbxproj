@@ -11,7 +11,6 @@
 		282E9B042061359200152B39 /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282E9B032061359200152B39 /* MapViewController.swift */; };
 		28459E2B20628A0C0077C5C4 /* StudentListTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28459E2A20628A0C0077C5C4 /* StudentListTableViewController.swift */; };
 		28515041205005AA00333D4D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28515040205005AA00333D4D /* AppDelegate.swift */; };
-		28515043205005AA00333D4D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28515042205005AA00333D4D /* ViewController.swift */; };
 		28515046205005AA00333D4D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 28515044205005AA00333D4D /* Main.storyboard */; };
 		28515048205005AA00333D4D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 28515047205005AA00333D4D /* Assets.xcassets */; };
 		2851504B205005AA00333D4D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 28515049205005AA00333D4D /* LaunchScreen.storyboard */; };
@@ -29,7 +28,6 @@
 		28459E2A20628A0C0077C5C4 /* StudentListTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudentListTableViewController.swift; sourceTree = "<group>"; };
 		2851503D205005AA00333D4D /* On The Map.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "On The Map.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		28515040205005AA00333D4D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		28515042205005AA00333D4D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		28515045205005AA00333D4D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		28515047205005AA00333D4D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2851504A205005AA00333D4D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -77,7 +75,6 @@
 				285150552050071A00333D4D /* Views */,
 				28515053205006F500333D4D /* Models */,
 				28515040205005AA00333D4D /* AppDelegate.swift */,
-				28515042205005AA00333D4D /* ViewController.swift */,
 				2851504C205005AA00333D4D /* Info.plist */,
 				28539F52205BD765008A68A8 /* GCDBlackBox.swift */,
 			);
@@ -197,7 +194,6 @@
 			files = (
 				285F7385205298280033EC3F /* LoginViewController.swift in Sources */,
 				28539F56205BED2E008A68A8 /* MapTabBarViewController.swift in Sources */,
-				28515043205005AA00333D4D /* ViewController.swift in Sources */,
 				28515041205005AA00333D4D /* AppDelegate.swift in Sources */,
 				282E9B022061274C00152B39 /* StudentLocations.swift in Sources */,
 				287287292054E90A0041EF1D /* Constants.swift in Sources */,

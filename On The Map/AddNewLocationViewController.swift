@@ -11,18 +11,22 @@ import MapKit
 
 class AddNewLocationViewController: UIViewController {
 
+    // MARK: IBOutlet
+    
     @IBOutlet weak var myLocationInput: UITextField!
     @IBOutlet weak var myWebSiteInput: UITextField!
     
+    // MARK: IBAction
+    
     @IBAction func findLocation(_ sender: Any) {
         searchLocation()
-        
     }
     
     @IBAction func cancelAddLocation(_ sender: Any) {
-        //self.dismiss(animated: true)
         self.navigationController?.popViewController(animated: true)
     }
+    
+    // MARK: Properties
     
     var latitude: Double?
     var longitude: Double?
@@ -30,61 +34,8 @@ class AddNewLocationViewController: UIViewController {
     var objectId: String?
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
+    // MARK: Function of UIViewController
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-    
-    func searchLocation() {
-        let request = MKLocalSearchRequest()
-        request.naturalLanguageQuery = myLocationInput!.text
-        let search = MKLocalSearch(request: request)
-        search.start { (response, error) in
-            if error != nil || response?.mapItems.count == 0 {
-                DispatchQueue.main.async {
-                    self.popupLocationNotFound()
-                }
-            } else {
-                self.latitude = response?.boundingRegion.center.latitude
-                self.longitude = response?.boundingRegion.center.longitude
-                self.validateWebUrl()
-            }
-        }
-        
-    }
-    
-    
-    func validateWebUrl() {
-        if let urlString = myWebSiteInput?.text {
-            // create NSURL instance
-            if let url = URL(string: urlString) {
-                // check if your application can open the NSURL instance
-                if !UIApplication.shared.canOpenURL(url) {
-                    popupLocationNotFound()
-                } else {
-                    self.performSegue(withIdentifier: "addStudentPositionMap", sender: self)
-                }
-            }
-        }
-    }
-
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "addStudentPositionMap" {
             let addLocationMapVC = segue.destination as! AddLocationMapViewController
@@ -94,33 +45,69 @@ class AddNewLocationViewController: UIViewController {
             appDelegate.studentLocation.MediaUrl = url!
             appDelegate.studentLocation.Latitude = latitude!
             appDelegate.studentLocation.Longitude = longitude!
-            /*
-            addLocationMapVC.location = loc
-            addLocationMapVC.url = url
-            addLocationMapVC.latitude = latitude
-            addLocationMapVC.longitude = longitude
-            
-            addLocationMapVC.newStudent = newStudent!
-            addLocationMapVC.objectId = objectId
-            */
             
             addLocationMapVC.newStudent = newStudent!
         }
     }
-    
-    func popupLocationNotFound() {
-        let alert = UIAlertController(title: "New Location", message: "This is an alert.", preferredStyle: .alert)
+}
 
-        alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Cancel action"), style: .default, handler: { _ in
+private extension AddNewLocationViewController {
+
+    // MARK: Private Functions
+    
+    //Get the Lat / Lon from the location name
+    func searchLocation() {
+        let request = MKLocalSearchRequest()
+        request.naturalLanguageQuery = myLocationInput!.text
+        let search = MKLocalSearch(request: request)
+        search.start { (response, error) in
+            if error != nil || response?.mapItems.count == 0 {
+                performUIUpdatesOnMain {
+                    self.popupLocationNotFound()
+                }
+            } else {
+                self.latitude = response?.boundingRegion.center.latitude
+                self.longitude = response?.boundingRegion.center.longitude
+                performUIUpdatesOnMain {
+                    self.validateWebUrl()
+                }
+            }
+        }
+    }
+}
+
+// MARK: AddNewLocationViewController UI Functions
+
+private extension AddNewLocationViewController {
+    
+    // Validate the URL string form
+    func validateWebUrl() {
+        if let urlString = myWebSiteInput?.text {
+            // create NSURL instance
+            if let url = URL(string: urlString) {
+                // check if your application can open the NSURL instance
+                if !UIApplication.shared.canOpenURL(url) {
+                    popupUrlNotValid()
+                } else {
+                    self.performSegue(withIdentifier: "addStudentPositionMap", sender: self)
+                }
+            }
+        }
+    }
+    
+    //Pop up dialogue if the location can't be found
+    func popupLocationNotFound() {
+        let alert = UIAlertController(title: "Location Not Found", message: "Could Not Geocode this String.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: "Cancel action"), style: .default, handler: { _ in
             NSLog("The \"Cancel\" alert occured.")
         }))
         self.present(alert, animated: true, completion: nil)
     }
 
+    //Pop up dialogue if the URL is badly formed
     func popupUrlNotValid() {
-        let alert = UIAlertController(title: "Overwrite Location", message: "This is an alert.", preferredStyle: .alert)
-        
-        alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Cancel action"), style: .default, handler: { _ in
+        let alert = UIAlertController(title: "Location Not Found", message: "Invalid Link. Include HTTP(s)://.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: "Cancel action"), style: .default, handler: { _ in
             NSLog("The \"Cancel\" alert occured.")
         }))
         self.present(alert, animated: true, completion: nil)

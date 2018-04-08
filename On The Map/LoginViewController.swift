@@ -8,15 +8,9 @@
 
 import UIKit
 
-// MARK: - LoginViewController: UIViewController
-
 class LoginViewController: UIViewController {
     
-    // MARK: Properties
-    
-    let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    
-    // MARK: Outlets
+    // MARK: IBOutlets
     
     @IBOutlet weak var usernameTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
@@ -24,21 +18,7 @@ class LoginViewController: UIViewController {
     @IBOutlet weak var signupButton: UIButton!
     @IBOutlet weak var debugTextLabel: UILabel!
     
-    
-    // MARK: Life Cycle
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        configureUI()
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        unsubscribeFromAllNotifications()
-    }
-    
-    // MARK: Login
+    // MARK: IBActions
     
     @IBAction func loginPressed(_ sender: Any) {
         userDidTapView(self)
@@ -47,20 +27,6 @@ class LoginViewController: UIViewController {
             debugTextLabel.text = "Username or Password Empty."
         } else {
             setUIEnabled(false)
-            
-            /*
-             Steps for Authentication...
-             https://www.themoviedb.org/documentation/api/sessions
-             
-             Step 1: Create a request token
-             Step 2: Ask the user for permission via the API ("login")
-             Step 3: Create a session ID
-             
-             Extra Steps...
-             Step 4: Get the user id ;)
-             Step 5: Go to the next view!
-             */
-            //getRequestToken()
             login();
         }
     }
@@ -70,8 +36,25 @@ class LoginViewController: UIViewController {
         resignIfFirstResponder(passwordTextField)
     }
     
-    // MARK: TheMovieDB
+    // MARK: Properties
     
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    
+    // MARK: Life Cycle
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        configureUI()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        unsubscribeFromAllNotifications()
+    }
+    
+    // MARK: private functions
+    
+    //Log in and get the username for use in map
     private func login() {
         var request = URLRequest(url: URL(string: "https://www.udacity.com/api/session")!)
         request.httpMethod = "POST"
@@ -81,14 +64,26 @@ class LoginViewController: UIViewController {
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
             if error != nil { // Handle error…
+                performUIUpdatesOnMain {
+                    self.networkFailed()
+                }
                 return
             }
             let range = Range(5..<data!.count)
             let newData = data?.subdata(in: range) /* subset response data! */
-            //print(String(data: newData!, encoding: .utf8)!)
             let parsedResult: [String:AnyObject]!
             do {
                 parsedResult = try JSONSerialization.jsonObject(with: newData!, options: .allowFragments) as! [String:AnyObject]
+                if let status = parsedResult["status"] {
+                    let statusCode = status as! Int
+                    //Log in failed
+                    if statusCode == 403 {
+                        performUIUpdatesOnMain {
+                            self.loginError()
+                        }
+                        
+                    }
+                }
                 if let session = parsedResult["session"] {
                     self.appDelegate.sessionID = (session as! [String:AnyObject])["id"] as? String
                     self.appDelegate.sessionExpiration = (session as! [String:AnyObject])["expiration"] as? String
@@ -98,35 +93,27 @@ class LoginViewController: UIViewController {
                     self.appDelegate.accountRegistered = (account as! [String:AnyObject])["registered"] as? Bool
                     self.appDelegate.accountKey = (account as! [String:AnyObject])["key"] as? String
                     self.appDelegate.studentLocation.UniqueKey = self.appDelegate.accountKey!
-                    
-                    
                 }
                 if let registered = self.appDelegate.accountRegistered {
                     if registered {
-                        self.completeLogin();
+                        //Log in success
+                        performUIUpdatesOnMain {
+                            self.completeLogin()
+                        }
                     }
                 }
+
             } catch {
                 return
             }
-            
             self.getUserName()
-            
-            
         }
         task.resume()
     }
     
-    private func completeLogin() {
-        performUIUpdatesOnMain {
-            self.debugTextLabel.text = ""
-            self.setUIEnabled(true)
-            let controller = self.storyboard!.instantiateViewController(withIdentifier: "NavController") as! UINavigationController
-            self.present(controller, animated: true, completion: nil)
-        }
-    }
+
     
-    func getUserName() {
+    private func getUserName() {
         let userId = appDelegate.studentLocation.UniqueKey
         var request = URLRequest(url: URL(string: "https://www.udacity.com/api/users/\(userId)")!)
         request.httpMethod = "GET"
@@ -151,22 +138,16 @@ class LoginViewController: UIViewController {
                     if let firstName = user["first_name"] {
                         self.appDelegate.studentLocation.FirstName = firstName as! String
                     }
-                    
                 }
-
             } catch {
                 return
             }
-            
-            DispatchQueue.main.async {
+            performUIUpdatesOnMain {
                 self.setUIEnabled(true)
             }
-            
-            
         }
         task.resume()
     }
-    
 }
 
 // MARK: - LoginViewController: UITextFieldDelegate
@@ -191,13 +172,18 @@ extension LoginViewController: UITextFieldDelegate {
             textField.resignFirstResponder()
         }
     }
-    
-
 }
 
 // MARK: - LoginViewController (Configure UI)
 
 private extension LoginViewController {
+    
+    private func completeLogin() {
+        debugTextLabel.text = ""
+        setUIEnabled(true)
+        let controller = self.storyboard!.instantiateViewController(withIdentifier: "NavController") as! UINavigationController
+        present(controller, animated: true, completion: nil)
+    }
     
     func setUIEnabled(_ enabled: Bool) {
         usernameTextField.isEnabled = enabled
@@ -237,6 +223,21 @@ private extension LoginViewController {
         textField.tintColor = Constants.UI.BlueColor
         textField.delegate = self
     }
+    
+    func loginError() {
+        let message = "Invalid Email or Password."
+        let alert = UIAlertController(title: "Login Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: "Cancel Log In"), style: .cancel, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    //Web API timeout
+    func networkFailed() {
+        let message = "There was an error retrieving log in info."
+        let alert = UIAlertController(title: "Network Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: "Network Error"), style: .cancel, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
 }
 
 // MARK: - LoginViewController (Notifications)
@@ -250,6 +251,4 @@ private extension LoginViewController {
     func unsubscribeFromAllNotifications() {
         NotificationCenter.default.removeObserver(self)
     }
-    
-
 }
