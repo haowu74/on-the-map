@@ -27,7 +27,7 @@ class StudentListTableViewController: UITableViewController {
 
     // MARK: Properties
     // The dictionary to contain all the 1000 student locations
-    var locations: [StudentLocation] = []
+    var studentInfo = StudentLocations.shared;
 
     // MARK: Life Cycle
     
@@ -43,14 +43,14 @@ class StudentListTableViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return locations.count
+        return studentInfo.locations.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "studentListCellId") as! StudentListTableViewCell
 
-        cell.studentInfoLabel!.text = "\(locations[(indexPath as NSIndexPath).row].FirstName) \(locations[(indexPath as NSIndexPath).row].LastName)"
-        let studentUrl = "\(locations[(indexPath as NSIndexPath).row].MediaUrl)"
+        cell.studentInfoLabel!.text = "\(studentInfo.locations[(indexPath as NSIndexPath).row].FirstName) \(studentInfo.locations[(indexPath as NSIndexPath).row].LastName)"
+        let studentUrl = "\(studentInfo.locations[(indexPath as NSIndexPath).row].MediaUrl)"
         let attributedString = NSMutableAttributedString(string: studentUrl)
         attributedString.addAttribute(.link, value: studentUrl, range: NSRange(location: 0, length: studentUrl.count))
         cell.studentUrl!.attributedText = attributedString

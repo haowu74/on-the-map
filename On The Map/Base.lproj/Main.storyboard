@@ -143,7 +143,7 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <imageView userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Pin" translatesAutoresizingMaskIntoConstraints="NO" id="sot-fj-1Kp">
-                                            <rect key="frame" x="0.0" y="-1" width="20" height="44"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="20" height="49.5"/>
                                             <constraints>
                                                 <constraint firstAttribute="width" constant="20" id="A1X-V1-tPM"/>
                                             </constraints>
@@ -155,7 +155,7 @@
                                             <nil key="highlightedColor"/>
                                         </label>
                                         <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="j55-La-OZt">
-                                            <rect key="frame" x="20" y="21" width="355" height="22.5"/>
+                                            <rect key="frame" x="20" y="21" width="355" height="28.5"/>
                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                             <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
@@ -239,16 +239,21 @@
                                     <action selector="findLocation:" destination="GxB-Pc-pd2" eventType="touchUpInside" id="Vaq-cG-KN2"/>
                                 </connections>
                             </button>
+                            <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="NUQ-EP-1ck">
+                                <rect key="frame" x="177" y="355.5" width="20" height="20"/>
+                            </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="s1i-ak-WBX" firstAttribute="centerX" secondItem="b5d-jX-DX6" secondAttribute="centerX" id="G5F-Z2-bYj"/>
+                            <constraint firstItem="NUQ-EP-1ck" firstAttribute="centerX" secondItem="b5d-jX-DX6" secondAttribute="centerX" id="Kvd-h2-0fv"/>
                             <constraint firstItem="5lX-tN-oTM" firstAttribute="centerX" secondItem="b5d-jX-DX6" secondAttribute="centerX" id="Mx2-SX-F4g"/>
                             <constraint firstItem="5lX-tN-oTM" firstAttribute="top" secondItem="s1i-ak-WBX" secondAttribute="bottom" constant="20" id="P8V-mV-ufk"/>
                             <constraint firstItem="Wag-AC-KIC" firstAttribute="top" secondItem="b5d-jX-DX6" secondAttribute="top" constant="20" id="RQ0-sv-OcA"/>
                             <constraint firstItem="dQm-md-M3i" firstAttribute="centerX" secondItem="b5d-jX-DX6" secondAttribute="centerX" id="bxL-oK-lpm"/>
                             <constraint firstItem="Wag-AC-KIC" firstAttribute="centerX" secondItem="b5d-jX-DX6" secondAttribute="centerX" id="lmw-Ko-E4U"/>
                             <constraint firstItem="s1i-ak-WBX" firstAttribute="top" secondItem="Wag-AC-KIC" secondAttribute="bottom" constant="10" id="pQ6-Qs-OuQ"/>
+                            <constraint firstItem="NUQ-EP-1ck" firstAttribute="centerY" secondItem="b5d-jX-DX6" secondAttribute="centerY" id="plg-KZ-VYB"/>
                             <constraint firstItem="dQm-md-M3i" firstAttribute="top" secondItem="5lX-tN-oTM" secondAttribute="bottom" constant="20" id="vmb-Ep-46y"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="b5d-jX-DX6"/>
@@ -262,6 +267,7 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="isGeoCoding" destination="NUQ-EP-1ck" id="6Io-wu-7SC"/>
                         <outlet property="myLocationInput" destination="s1i-ak-WBX" id="Z2U-1s-TvT"/>
                         <outlet property="myWebSiteInput" destination="5lX-tN-oTM" id="1cJ-Ky-dlB"/>
                         <segue destination="Ery-xY-8i1" kind="show" identifier="addStudentPositionMap" id="ftq-0G-xXg"/>

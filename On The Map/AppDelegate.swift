@@ -31,12 +31,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var locManager = CLLocationManager()
     
-    var studentLocation = StudentLocation()
+    var studentLocation = StudentLocation(location: nil)
     
     // MARK: Life Cycle
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-
+        
         locManager.requestWhenInUseAuthorization()
         return true
     }

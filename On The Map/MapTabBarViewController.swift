@@ -51,7 +51,7 @@ class MapTabBarViewController: UITabBarController {
     }
     
     // MARK: Properties
-    var locations: [StudentLocation] = []
+    var studentInfo = StudentLocations.shared
     var newStudent: Bool = true
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     
@@ -119,8 +119,9 @@ private extension MapTabBarViewController {
 
     //Get 1000 locations from the API
     func updateLocations() {
-        locations.removeAll()
-        var request = URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation?limit=1000")!)
+
+        studentInfo.locations.removeAll()
+        var request = URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation?limit=100&order=-updatedAt")!)
         request.httpMethod = "GET"
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -141,17 +142,8 @@ private extension MapTabBarViewController {
                 parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! [String:[AnyObject]]
                 if let results = parsedResult["results"] {
                     for result in results {
-                        let location = StudentLocation(CreatedAt: result["createdAt"] as! String,
-                                                       FirstName: result["firstName"] as? String == nil ? "" : result["firstName"] as! String,
-                                                       LastName: result["lastName"] as? String == nil ? "" : result["lastName"] as! String,
-                                                       Latitude: result["latitude"] as? Double == nil ? 0 : result["latitude"] as! Double,
-                                                       Longitude: result["longitude"] as? Double == nil ? 0 : result["longitude"] as! Double,
-                                                       MapString: result["mapString"] as? String == nil ? "" : result["mapString"] as! String,
-                                                       MediaUrl: result["mediaURL"] as? String == nil ? "" : result["mediaURL"] as! String,
-                                                       ObjectId: result["objectId"] as! String,
-                                                       UniqueKey: result["uniqueKey"] as! String,
-                                                       UpdatedAt: result["updatedAt"] as! String)
-                        self.locations.append(location)
+                        let location = StudentLocation(location: result as! Dictionary<String, AnyObject>)
+                        self.studentInfo.locations.append(location)
                     }
                 }
                 
@@ -198,7 +190,7 @@ private extension MapTabBarViewController {
     func updateLoactionsToMapAndTable() {
         var annotations = [MKPointAnnotation]()
         
-        for dictionary in self.locations {
+        for dictionary in self.studentInfo.locations {
             
             // Notice that the float values are being used to create CLLocationDegree values.
             // This is a version of the Double type.
@@ -232,7 +224,6 @@ private extension MapTabBarViewController {
         mapViewController.mapView.addAnnotations(annotations)
         mapViewController.mapView.delegate = mapViewController
         let tableViewController = self.viewControllers?[1] as! StudentListTableViewController
-        tableViewController.locations = self.locations
         tableViewController.tableView.reloadData()
     }
     

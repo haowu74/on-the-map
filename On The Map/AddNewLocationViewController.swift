@@ -15,6 +15,7 @@ class AddNewLocationViewController: UIViewController {
     
     @IBOutlet weak var myLocationInput: UITextField!
     @IBOutlet weak var myWebSiteInput: UITextField!
+    @IBOutlet weak var isGeoCoding: UIActivityIndicatorView!
     
     // MARK: IBAction
     
@@ -24,6 +25,10 @@ class AddNewLocationViewController: UIViewController {
     
     @IBAction func cancelAddLocation(_ sender: Any) {
         self.navigationController?.popViewController(animated: true)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        isGeoCoding.hidesWhenStopped = true
     }
     
     // MARK: Properties
@@ -57,6 +62,9 @@ private extension AddNewLocationViewController {
     
     //Get the Lat / Lon from the location name
     func searchLocation() {
+        
+        activeIndicator(show: true)
+        
         let request = MKLocalSearchRequest()
         request.naturalLanguageQuery = myLocationInput!.text
         let search = MKLocalSearch(request: request)
@@ -64,12 +72,14 @@ private extension AddNewLocationViewController {
             if error != nil || response?.mapItems.count == 0 {
                 performUIUpdatesOnMain {
                     self.popupLocationNotFound()
+                    self.activeIndicator(show: false)
                 }
             } else {
                 self.latitude = response?.boundingRegion.center.latitude
                 self.longitude = response?.boundingRegion.center.longitude
                 performUIUpdatesOnMain {
                     self.validateWebUrl()
+                    self.activeIndicator(show: false)
                 }
             }
         }
@@ -107,5 +117,13 @@ private extension AddNewLocationViewController {
         let alert = UIAlertController(title: "Location Not Found", message: "Invalid Link. Include HTTP(s)://.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: "Cancel action"), style: .default, handler: nil))
         self.present(alert, animated: true, completion: nil)
+    }
+    
+    func activeIndicator(show: Bool) {
+        if show {
+            isGeoCoding.startAnimating()
+        } else {
+            isGeoCoding.stopAnimating()
+        }
     }
 }
