@@ -33,6 +33,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var studentLocation = StudentLocation(location: nil)
     
+    let client = Client.sharedInstance()
+    
     // MARK: Life Cycle
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
@@ -53,23 +55,7 @@ extension AppDelegate {
     //Delete the location using Web API
     func deleteLocation() {
         let objectId = studentLocation.ObjectId
-        
-        let urlString = "https://parse.udacity.com/parse/classes/StudentLocation/\(objectId)"
-        let url = URL(string: urlString)
-        var request = URLRequest(url: url!)
-        request.httpMethod = "DELETE"
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
-        request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
-
-        let session = URLSession.shared
-        let task = session.dataTask(with: request) { data, response, error in
-            if error != nil {
-                return
-            }
-        }
-        task.resume()
+        client.deleteLocation(objectId, nil)
     }
 }
 

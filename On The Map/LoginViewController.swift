@@ -39,6 +39,7 @@ class LoginViewController: UIViewController {
     // MARK: Properties
     
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    let client = Client.sharedInstance()
     
     // MARK: Life Cycle
     
@@ -56,97 +57,54 @@ class LoginViewController: UIViewController {
     
     //Log in and get the username for use in map
     private func login() {
-        var request = URLRequest(url: URL(string: "https://www.udacity.com/api/session")!)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = "{\"udacity\": {\"username\": \"\(usernameTextField!.text!)\", \"password\": \"\(passwordTextField!.text!)\"}}".data(using: .utf8)
-        let session = URLSession.shared
-        let task = session.dataTask(with: request) { data, response, error in
-            if error != nil { // Handle error…
+        client.login(usernameTextField!.text!, passwordTextField!.text!) { (account, session, error, other) in
+            if error != nil {
                 performUIUpdatesOnMain {
                     self.networkFailed()
                 }
                 return
-            }
-            let range = Range(5..<data!.count)
-            let newData = data?.subdata(in: range) /* subset response data! */
-            let parsedResult: [String:AnyObject]!
-            do {
-                parsedResult = try JSONSerialization.jsonObject(with: newData!, options: .allowFragments) as! [String:AnyObject]
-                if let status = parsedResult["status"] {
-                    let statusCode = status as! Int
-                    //Log in failed
-                    if statusCode == 403 {
-                        performUIUpdatesOnMain {
-                            self.loginError()
-                        }
-                        
+            } else {
+                if other == 403 {
+                    performUIUpdatesOnMain {
+                        self.loginError()
                     }
-                }
-                if let session = parsedResult["session"] {
-                    self.appDelegate.sessionID = (session as! [String:AnyObject])["id"] as? String
-                    self.appDelegate.sessionExpiration = (session as! [String:AnyObject])["expiration"] as? String
-                    
-                }
-                if let account = parsedResult["account"] {
-                    self.appDelegate.accountRegistered = (account as! [String:AnyObject])["registered"] as? Bool
-                    self.appDelegate.accountKey = (account as! [String:AnyObject])["key"] as? String
+                } else if other == -1 {
+                    return
+                } else if let session = session, let account = account{
+                    self.appDelegate.sessionID = session["id"] as? String
+                    self.appDelegate.sessionExpiration = session["expiration"] as? String
+                    self.appDelegate.accountRegistered = account["registered"] as? Bool
+                    self.appDelegate.accountKey = account["key"] as? String
                     self.appDelegate.studentLocation.UniqueKey = self.appDelegate.accountKey!
-                }
-                if let registered = self.appDelegate.accountRegistered {
-                    if registered {
-                        //Log in success
-                        performUIUpdatesOnMain {
-                            self.completeLogin()
+                    if let registered = self.appDelegate.accountRegistered {
+                        if registered {
+                            //Log in success
+                            performUIUpdatesOnMain {
+                                self.completeLogin()
+                            }
                         }
                     }
+                    self.getUserName()
                 }
-
-            } catch {
-                return
             }
-            self.getUserName()
         }
-        task.resume()
     }
-    
-
     
     private func getUserName() {
         let userId = appDelegate.studentLocation.UniqueKey
-        var request = URLRequest(url: URL(string: "https://www.udacity.com/api/users/\(userId)")!)
-        request.httpMethod = "GET"
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        let session = URLSession.shared
-        let task = session.dataTask(with: request) { data, response, error in
-            if error != nil { // Handle error…
+        client.getUsername(userId) { (firstName, lastName, error, other) in
+            if error != nil {
                 return
-            }
-            let range = Range(5..<data!.count)
-            let newData = data?.subdata(in: range) /* subset response data! */
-
-            let parsedResult: [String:AnyObject]!
-            do {
-                parsedResult = try JSONSerialization.jsonObject(with: newData!, options: .allowFragments) as! [String:AnyObject]
-                if let user = parsedResult["user"] {
-                    if let lastName = user["last_name"] {
-                        self.appDelegate.studentLocation.LastName = lastName as! String
-                    }
-                    if let firstName = user["first_name"] {
-                        self.appDelegate.studentLocation.FirstName = firstName as! String
-                    }
+            } else if other == -1 {
+                return
+            } else {
+                self.appDelegate.studentLocation.LastName = lastName ?? ""
+                self.appDelegate.studentLocation.FirstName = firstName ?? ""
+                performUIUpdatesOnMain {
+                    self.setUIEnabled(true)
                 }
-            } catch {
-                return
-            }
-            performUIUpdatesOnMain {
-                self.setUIEnabled(true)
             }
         }
-        task.resume()
     }
 }
 

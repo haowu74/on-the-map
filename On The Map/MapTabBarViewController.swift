@@ -20,25 +20,13 @@ class MapTabBarViewController: UITabBarController {
     // MARK: IBActions
 
     @IBAction func logoutButtonTouched(_ sender: Any) {
-        var request = URLRequest(url: URL(string: "https://www.udacity.com/api/session")!)
-        request.httpMethod = "DELETE"
-        var xsrfCookie: HTTPCookie? = nil
-        let sharedCookieStorage = HTTPCookieStorage.shared
-        for cookie in sharedCookieStorage.cookies! {
-            if cookie.name == "XSRF-TOKEN" { xsrfCookie = cookie }
-        }
-        if let xsrfCookie = xsrfCookie {
-            request.setValue(xsrfCookie.value, forHTTPHeaderField: "X-XSRF-TOKEN")
-        }
-        let session = URLSession.shared
-        let task = session.dataTask(with: request) { data, response, error in
+        client.logout { error in
             if error != nil {
                 return
             }
             // Delete location when log off
             self.appDelegate.deleteLocation()
         }
-        task.resume()
         self.dismiss(animated: true, completion: nil)
     }
     
@@ -54,10 +42,12 @@ class MapTabBarViewController: UITabBarController {
     var studentInfo = StudentLocations.shared
     var newStudent: Bool = true
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    let client = Client.sharedInstance()
     
     // MARK: Life Cycle
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         setUI(enable: false)
         checkLocationExist()
         updateLocations()
@@ -77,21 +67,13 @@ private extension MapTabBarViewController {
     //Check if the Student has already existed
     func checkLocationExist() {
         let uniqueId = appDelegate.accountKey
-        let urlString = "https://parse.udacity.com/parse/classes/StudentLocation?where=%7B%22uniqueKey%22%3A%22\(uniqueId!)%22%7D"
-        let url = URL(string: urlString)
-        var request = URLRequest(url: url!)
-        request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
-        request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
-        let session = URLSession.shared
-        let task = session.dataTask(with: request) { data, response, error in
+        client.queryLocation(uniqueId!) { (results, error, other) in
             if error != nil {
                 return
-            }
-            let parsedResult: [String:[AnyObject]]!
-            do {
-                parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as? [String:[AnyObject]]
-                if let results = parsedResult["results"] {
-                    //check if the user has already posted a location
+            } else if other == -1 {
+                return
+            } else {
+                if let results = results {
                     if results.count > 0 {
                         self.newStudent = false
                         let result = results[0]
@@ -107,57 +89,37 @@ private extension MapTabBarViewController {
                         self.newStudent = true
                     }
                 }
-                performUIUpdatesOnMain {
-                    self.setUI(enable: true)
-                }
-            } catch {
-                return
+            }
+            performUIUpdatesOnMain {
+                self.setUI(enable: true)
             }
         }
-        task.resume()
     }
 
     //Get 1000 locations from the API
     func updateLocations() {
-
         studentInfo.locations.removeAll()
-        var request = URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation?limit=100&order=-updatedAt")!)
-        request.httpMethod = "GET"
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
-        request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
-        let session = URLSession.shared
-        let task = session.dataTask(with: request) { data, response, error in
+        client.getLocations { (results, error, other) in
             if error != nil {
                 performUIUpdatesOnMain {
                     self.updateLocationsFailed()
                 }
-                return
-            }
-            
-            //print(String(data: newData!, encoding: .utf8)!)
-            let parsedResult: [String:[AnyObject]]!
-            do {
-                parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! [String:[AnyObject]]
-                if let results = parsedResult["results"] {
+            } else if (other == -1) {
+                performUIUpdatesOnMain {
+                    self.updateLocationsFailed()
+                }
+            } else {
+                if let results = results {
                     for result in results {
                         let location = StudentLocation(location: result as! Dictionary<String, AnyObject>)
                         self.studentInfo.locations.append(location)
                     }
                 }
-                
-            } catch {
                 performUIUpdatesOnMain {
-                    self.updateLocationsFailed()
+                    self.updateLoactionsToMapAndTable()
                 }
-                return
-            }
-            performUIUpdatesOnMain {
-                self.updateLoactionsToMapAndTable()
             }
         }
-        task.resume()
     }
 }
 

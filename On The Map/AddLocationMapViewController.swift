@@ -20,24 +20,29 @@ class AddLocationMapViewController: UIViewController {
     @IBAction func submitNewLocation(_ sender: Any) {
         
         let location = appDelegate.studentLocation
-        var request = newStudent ? URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation")!) : URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation/\(location.ObjectId)")!)
-        request.httpMethod = newStudent ? "POST" : "PUT"
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
-        request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
-        request.httpBody = "{\"uniqueKey\": \"\(location.UniqueKey)\",\"firstName\": \"\(location.FirstName)\",\"lastName\": \"\(location.LastName)\",\"mapString\": \"\(location.MapString)\", \"mediaURL\": \"\(location.MediaUrl)\",\"latitude\": \(location.Latitude), \"longitude\": \(location.Longitude)}".data(using: .utf8)
-        let session = URLSession.shared
-        let task = session.dataTask(with: request) { data, response, error in
-            if error != nil {
-                self.addLocationFailed()
-                return
+        if newStudent {
+            client.postLocation(location) { (error) in
+                if error != nil {
+                    self.addLocationFailed()
+                } else {
+                    performUIUpdatesOnMain {
+                        self.navigationController?.popToRootViewController(animated: true)
+                    }
+                    self.appDelegate.studentLocation = location
+                }
             }
-            performUIUpdatesOnMain {
-               self.navigationController?.popToRootViewController(animated: true)
+        } else {
+            client.putLocation(location) { (error) in
+                if error != nil {
+                    self.addLocationFailed()
+                } else {
+                    performUIUpdatesOnMain {
+                        self.navigationController?.popToRootViewController(animated: true)
+                    }
+                    self.appDelegate.studentLocation = location
+                }
             }
         }
-        task.resume()
     }
     
     // MARK: Properties
@@ -45,6 +50,7 @@ class AddLocationMapViewController: UIViewController {
     var newStudent: Bool = true
     let locationManager = CLLocationManager()
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
+    let client = Client.sharedInstance()
     
     // MARK: Life Cycle
     

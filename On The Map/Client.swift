@@ -5,93 +5,205 @@
 //  Created by Hao Wu on 9/4/18.
 //  Copyright © 2018 S&J. All rights reserved.
 //
-
+import UIKit
 import Foundation
 
 class Client {
     
     // MARK: Properties
     
+    // constants
+    let ApiKey = "QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY"
+    let ApplicationId = "QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr"
+    let ApiKeyField = "X-Parse-REST-API-Key"
+    let ApplicationIdField = "X-Parse-Application-Id"
+    
     // shared session
     var session = URLSession.shared
     
+    // MARK: Web API Functions
     
-    func taskForGetMethod(_ method: String, parameters: [String:AnyObject], completionHandlerForGET: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
-        
-        /* 1. Set the parameters */
-        var parametersWithApiKey = parameters
-        parametersWithApiKey[ParameterKeys.ApiKey] = Constants.ApiKey as AnyObject?
-        
-        /* 2/3. Build the URL, Configure the request */
-        let request = NSMutableURLRequest(url: URLFromParameters(parametersWithApiKey, withPathExtension: method))
-        
-        /* 4. Make the request */
-        let task = session.dataTask(with: request as URLRequest) { (data, response, error) in
-            
-            func sendError(_ error: String) {
-                print(error)
-                let userInfo = [NSLocalizedDescriptionKey : error]
-                completionHandlerForGET(nil, NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
+    // Create Session
+    func login(_ username: String, _ password: String, _ completionHandlerForLogin: @escaping (_ account: [String: AnyObject]?, _ session: [String: AnyObject]?, _ error: Error?, _ other: Int) -> Void) {
+        var request = URLRequest(url: URL(string: "https://www.udacity.com/api/session")!)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = "{\"udacity\": {\"username\": \"\(username)\", \"password\": \"\(password)\"}}".data(using: .utf8)
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+            if error != nil {
+                completionHandlerForLogin(nil, nil, error, 0)
+            } else {
+                let range = Range(5..<data!.count)
+                let newData = data?.subdata(in: range) /* subset response data! */
+                let parsedResult: [String:AnyObject]!
+                do {
+                    parsedResult = try JSONSerialization.jsonObject(with: newData!, options: .allowFragments) as! [String:AnyObject]
+                    if let status = parsedResult["status"]{
+                        completionHandlerForLogin(nil, nil, nil, status as! Int)
+                    }
+                    if let session = parsedResult["session"], let account = parsedResult["account"] {
+                        completionHandlerForLogin(account as? [String: AnyObject], session as? [String: AnyObject], nil, 0)
+                    }
+                } catch {
+                    completionHandlerForLogin(nil, nil, nil, -1)
+                }
             }
-            
-            /* GUARD: Was there an error? */
-            guard (error == nil) else {
-                sendError("There was an error with your request: \(error!)")
-                return
-            }
-            
-            /* GUARD: Did we get a successful 2XX response? */
-            guard let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode >= 200 && statusCode <= 299 else {
-                sendError("Your request returned a status code other than 2xx!")
-                return
-            }
-            
-            /* GUARD: Was there any data returned? */
-            guard let data = data else {
-                sendError("No data was returned by the request!")
-                return
-            }
-            
-            /* 5/6. Parse the data and use the data (happens in completion handler) */
-            self.convertDataWithCompletionHandler(data, completionHandlerForConvertData: completionHandlerForGET)
         }
-        
-        /* 7. Start the request */
         task.resume()
-        
-        return task
     }
     
-    // given raw JSON, return a usable Foundation object
-    private func convertDataWithCompletionHandler(_ data: Data, completionHandlerForConvertData: (_ result: AnyObject?, _ error: NSError?) -> Void) {
-        
-        var parsedResult: AnyObject! = nil
-        do {
-            parsedResult = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as AnyObject
-        } catch {
-            let userInfo = [NSLocalizedDescriptionKey : "Could not parse the data as JSON: '\(data)'"]
-            completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
+    // Delete Session
+    func logout(_ completionHandlerForLogout: @escaping (_ error: Error?) -> Void) {
+        var request = URLRequest(url: URL(string: "https://www.udacity.com/api/session")!)
+        request.httpMethod = "DELETE"
+        var xsrfCookie: HTTPCookie? = nil
+        let sharedCookieStorage = HTTPCookieStorage.shared
+        for cookie in sharedCookieStorage.cookies! {
+            if cookie.name == "XSRF-TOKEN" { xsrfCookie = cookie }
         }
-        
-        completionHandlerForConvertData(parsedResult, nil)
-    }
-    
-    private func URLFromParameters(_ parameters: [String:AnyObject], withPathExtension: String? = nil) -> URL {
-        
-        var components = URLComponents()
-        components.scheme = Constants.ApiScheme
-        components.host = Constants.ApiHost
-        components.path = Constants.ApiPath + (withPathExtension ?? "")
-        components.queryItems = [URLQueryItem]()
-        
-        for (key, value) in parameters {
-            let queryItem = URLQueryItem(name: key, value: "\(value)")
-            components.queryItems!.append(queryItem)
+        if let xsrfCookie = xsrfCookie {
+            request.setValue(xsrfCookie.value, forHTTPHeaderField: "X-XSRF-TOKEN")
         }
-        
-        return components.url!
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+            completionHandlerForLogout(nil)
+        }
+        task.resume()
     }
     
+    // Get Username
+    func getUsername(_ userId: String, _ completionHandlerForUsername: @escaping (_ firstName: String?, _ lastName: String?, _ error: Error?, _ other: Int) -> Void) {
+        var request = URLRequest(url: URL(string: "https://www.udacity.com/api/users/\(userId)")!)
+        request.httpMethod = "GET"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+            if error != nil {
+                completionHandlerForUsername(nil, nil, error, 0)
+            }
+            let range = Range(5..<data!.count)
+            let newData = data?.subdata(in: range) /* subset response data! */
+            
+            let parsedResult: [String:AnyObject]!
+            do {
+                parsedResult = try JSONSerialization.jsonObject(with: newData!, options: .allowFragments) as! [String:AnyObject]
+                if let user = parsedResult["user"] {
+                    let lastName = user["last_name"] as? String
+                    let firstName = user["first_name"] as? String
+                    completionHandlerForUsername(lastName, firstName, nil, 0)
+                }
+            } catch {
+                completionHandlerForUsername(nil, nil, nil, -1)
+            }
+        }
+        task.resume()
+    }
+    
+    // Read Student Info
+    func queryLocation(_ uniqueId: String, _ completionHandlerForLocation: @escaping (_ result: [AnyObject]?, _ error: Error?, _ other: Int) -> Void) {
+        let urlString = "https://parse.udacity.com/parse/classes/StudentLocation?where=%7B%22uniqueKey%22%3A%22\(uniqueId)%22%7D"
+        let url = URL(string: urlString)
+        var request = URLRequest(url: url!)
+        request.addValue(ApplicationId, forHTTPHeaderField: ApplicationIdField)
+        request.addValue(ApiKey, forHTTPHeaderField: ApiKeyField)
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+            if error != nil {
+                completionHandlerForLocation(nil, error, 0)
+            } else {
+                do {
+                    let parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! [String:[AnyObject]]
+                    if let results = parsedResult["results"] {
+                        completionHandlerForLocation(results, nil, 0)
+                    }
+                } catch {
+                    completionHandlerForLocation(nil, nil, -1)
+                }
+            }
+        }
+        task.resume()
+    }
+    
+    // Get Students Info
+    func getLocations(_ completionHandlerForLocations: @escaping (_ result: [AnyObject]?, _ error: Error?, _ other: Int) -> Void) {
+        var request = URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation?limit=100&order=-updatedAt")!)
+        request.httpMethod = "GET"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(ApplicationId, forHTTPHeaderField: ApplicationIdField)
+        request.addValue(ApiKey, forHTTPHeaderField: ApiKeyField)
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completionHandlerForLocations(nil, error, 0)
+            } else {
+                do {
+                    let parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! [String:[AnyObject]]
+                    if let results = parsedResult["results"] {
+                        completionHandlerForLocations(results, nil, 0)
+                    }                    
+                } catch {
+                    completionHandlerForLocations(nil, nil, -1)
+                }
+            }
+        }
+        task.resume()
+    }
+    
+    // Add new Student Info
+    func postLocation(_ location: StudentLocation, _ completionHandlerForLocation: @escaping (_ error: Error?) -> Void) {
+        var request = URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation")!)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(ApplicationId, forHTTPHeaderField: ApplicationIdField)
+        request.addValue(ApiKey, forHTTPHeaderField: ApiKeyField)
+        request.httpBody = "{\"uniqueKey\": \"\(location.UniqueKey)\",\"firstName\": \"\(location.FirstName)\",\"lastName\": \"\(location.LastName)\",\"mapString\": \"\(location.MapString)\", \"mediaURL\": \"\(location.MediaUrl)\",\"latitude\": \(location.Latitude), \"longitude\": \(location.Longitude)}".data(using: .utf8)
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+                completionHandlerForLocation(error)
+        }
+        task.resume()
+    }
+    
+    // Update Student Info
+    func putLocation(_ location: StudentLocation, _ completionHandlerForLocation: @escaping (_ error: Error?) -> Void) {
+        var request = URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation/\(location.ObjectId)")!)
+        request.httpMethod = "PUT"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(ApplicationId, forHTTPHeaderField: ApplicationIdField)
+        request.addValue(ApiKey, forHTTPHeaderField: ApiKeyField)
+        request.httpBody = "{\"uniqueKey\": \"\(location.UniqueKey)\",\"firstName\": \"\(location.FirstName)\",\"lastName\": \"\(location.LastName)\",\"mapString\": \"\(location.MapString)\", \"mediaURL\": \"\(location.MediaUrl)\",\"latitude\": \(location.Latitude), \"longitude\": \(location.Longitude)}".data(using: .utf8)
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+            completionHandlerForLocation(error)
+        }
+        task.resume()
+    }
+    
+    // Delete Student Info
+    func deleteLocation(_ objectId: String, _ completionHandlerForLocation: ((_ error: Error?) -> Void)?) {
+        let urlString = "https://parse.udacity.com/parse/classes/StudentLocation/\(objectId)"
+        let url = URL(string: urlString)
+        var request = URLRequest(url: url!)
+        request.httpMethod = "DELETE"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(ApplicationId, forHTTPHeaderField: ApplicationIdField)
+        request.addValue(ApiKey, forHTTPHeaderField: ApiKeyField)
+        
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+            completionHandlerForLocation?(error)
+        }
+        task.resume()
+    }
+
     // MARK: Shared Instance
     
     class func sharedInstance() -> Client {
