@@ -50,7 +50,7 @@ class AddLocationMapViewController: UIViewController {
     var newStudent: Bool = true
     let locationManager = CLLocationManager()
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    let client = Client.sharedInstance()
+    let client = Client.sharedInstance
     
     // MARK: Life Cycle
     

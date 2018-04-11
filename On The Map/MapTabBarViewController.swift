@@ -27,7 +27,7 @@ class MapTabBarViewController: UITabBarController {
             // Delete location when log off
             self.appDelegate.deleteLocation()
         }
-        self.dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
     
     @IBAction func addNewLocation(_ sender: Any) {
@@ -42,7 +42,7 @@ class MapTabBarViewController: UITabBarController {
     var studentInfo = StudentLocations.shared
     var newStudent: Bool = true
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    let client = Client.sharedInstance()
+    let client = Client.sharedInstance
     
     // MARK: Life Cycle
     
@@ -67,39 +67,29 @@ private extension MapTabBarViewController {
     //Check if the Student has already existed
     func checkLocationExist() {
         let uniqueId = appDelegate.accountKey
-        client.queryLocation(uniqueId!) { (results, error, other) in
+        client.queryLocation(uniqueId!) { (location, error, other) in
             if error != nil {
                 return
             } else if other == -1 {
                 return
             } else {
-                if let results = results {
-                    if results.count > 0 {
-                        self.newStudent = false
-                        let result = results[0]
-                        self.appDelegate.studentLocation.CreatedAt = result["createdAt"] as! String
-                        self.appDelegate.studentLocation.Latitude = result["latitude"] as? Double == nil ? 0 : result["latitude"] as! Double
-                        self.appDelegate.studentLocation.Longitude = result["longitude"] as? Double == nil ? 0 : result["longitude"] as! Double
-                        self.appDelegate.studentLocation.MapString = result["mapString"] as? String == nil ? "" : result["mapString"] as! String
-                        self.appDelegate.studentLocation.MediaUrl = result["mediaURL"] as? String == nil ? "" : result["mediaURL"] as! String
-                        self.appDelegate.studentLocation.ObjectId = result["objectId"] as! String
-                        self.appDelegate.studentLocation.UniqueKey = result["uniqueKey"] as! String
-                        self.appDelegate.studentLocation.UpdatedAt = result["updatedAt"] as! String
-                    } else {
-                        self.newStudent = true
-                    }
+                if let location = location {
+                    self.newStudent = false
+                    self.appDelegate.studentLocation = location
+                } else {
+                    self.newStudent = true
                 }
             }
-            performUIUpdatesOnMain {
-                self.setUI(enable: true)
-            }
+        }
+        performUIUpdatesOnMain {
+            self.setUI(enable: true)
         }
     }
 
     //Get 1000 locations from the API
     func updateLocations() {
         studentInfo.locations.removeAll()
-        client.getLocations { (results, error, other) in
+        client.getLocations { (locations, error, other) in
             if error != nil {
                 performUIUpdatesOnMain {
                     self.updateLocationsFailed()
@@ -109,11 +99,8 @@ private extension MapTabBarViewController {
                     self.updateLocationsFailed()
                 }
             } else {
-                if let results = results {
-                    for result in results {
-                        let location = StudentLocation(location: result as! Dictionary<String, AnyObject>)
-                        self.studentInfo.locations.append(location)
-                    }
+                if let locations = locations {
+                    self.studentInfo.locations = locations
                 }
                 performUIUpdatesOnMain {
                     self.updateLoactionsToMapAndTable()
@@ -183,6 +170,7 @@ private extension MapTabBarViewController {
         
         // When the array is complete, we add the annotations to the map.
         let mapViewController = self.viewControllers?[0] as! MapViewController
+        mapViewController.mapView.removeAnnotations(mapViewController.mapView.annotations)
         mapViewController.mapView.addAnnotations(annotations)
         mapViewController.mapView.delegate = mapViewController
         let tableViewController = self.viewControllers?[1] as! StudentListTableViewController

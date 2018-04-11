@@ -39,7 +39,7 @@ class LoginViewController: UIViewController {
     // MARK: Properties
     
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    let client = Client.sharedInstance()
+    let client = Client.sharedInstance
     
     // MARK: Life Cycle
     
@@ -57,7 +57,7 @@ class LoginViewController: UIViewController {
     
     //Log in and get the username for use in map
     private func login() {
-        client.login(usernameTextField!.text!, passwordTextField!.text!) { (account, session, error, other) in
+        client.login(usernameTextField!.text!, passwordTextField!.text!) { (id, expiration, registered, key, error, other) in
             if error != nil {
                 performUIUpdatesOnMain {
                     self.networkFailed()
@@ -70,11 +70,11 @@ class LoginViewController: UIViewController {
                     }
                 } else if other == -1 {
                     return
-                } else if let session = session, let account = account{
-                    self.appDelegate.sessionID = session["id"] as? String
-                    self.appDelegate.sessionExpiration = session["expiration"] as? String
-                    self.appDelegate.accountRegistered = account["registered"] as? Bool
-                    self.appDelegate.accountKey = account["key"] as? String
+                } else if let id = id, let expiration = expiration, let registered = registered, let key = key {
+                    self.appDelegate.sessionID = id
+                    self.appDelegate.sessionExpiration = expiration
+                    self.appDelegate.accountRegistered = registered
+                    self.appDelegate.accountKey = key
                     self.appDelegate.studentLocation.UniqueKey = self.appDelegate.accountKey!
                     if let registered = self.appDelegate.accountRegistered {
                         if registered {
@@ -181,20 +181,26 @@ private extension LoginViewController {
         textField.tintColor = Constants.UI.BlueColor
         textField.delegate = self
     }
-    
+}
+
+// MARK: Public methods for dialogue
+
+public extension UIViewController {
+
+    // Login Error
     func loginError() {
         let message = "Invalid Email or Password."
         let alert = UIAlertController(title: "Login Error", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: "Cancel Log In"), style: .cancel, handler: nil))
-        self.present(alert, animated: true, completion: nil)
+        present(alert, animated: true, completion: nil)
     }
     
-    //Web API timeout
+    // Web API timeout
     func networkFailed() {
         let message = "There was an error retrieving log in info."
         let alert = UIAlertController(title: "Network Error", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: NSLocalizedString("Dismiss", comment: "Network Error"), style: .cancel, handler: nil))
-        self.present(alert, animated: true, completion: nil)
+        present(alert, animated: true, completion: nil)
     }
 }
 

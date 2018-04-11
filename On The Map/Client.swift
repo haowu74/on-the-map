@@ -24,7 +24,7 @@ class Client {
     // MARK: Web API Functions
     
     // Create Session
-    func login(_ username: String, _ password: String, _ completionHandlerForLogin: @escaping (_ account: [String: AnyObject]?, _ session: [String: AnyObject]?, _ error: Error?, _ other: Int) -> Void) {
+    func login(_ username: String, _ password: String, _ completionHandlerForLogin: @escaping (_ id: String?, _ expiration: String?, _ registered: Bool?, _ key: String?, _ error: Error?, _ other: Int) -> Void) {
         var request = URLRequest(url: URL(string: "https://www.udacity.com/api/session")!)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Accept")
@@ -33,7 +33,7 @@ class Client {
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
             if error != nil {
-                completionHandlerForLogin(nil, nil, error, 0)
+                completionHandlerForLogin(nil, nil, nil, nil, error, 0)
             } else {
                 let range = Range(5..<data!.count)
                 let newData = data?.subdata(in: range) /* subset response data! */
@@ -41,13 +41,17 @@ class Client {
                 do {
                     parsedResult = try JSONSerialization.jsonObject(with: newData!, options: .allowFragments) as! [String:AnyObject]
                     if let status = parsedResult["status"]{
-                        completionHandlerForLogin(nil, nil, nil, status as! Int)
+                        completionHandlerForLogin(nil, nil, nil, nil, nil, status as! Int)
                     }
                     if let session = parsedResult["session"], let account = parsedResult["account"] {
-                        completionHandlerForLogin(account as? [String: AnyObject], session as? [String: AnyObject], nil, 0)
+                        let id = session["id"] as? String
+                        let expiration = session["expiration"] as? String
+                        let registered = account["registered"] as? Bool
+                        let key = account["key"] as? String
+                        completionHandlerForLogin(id, expiration, registered, key, nil, 0)
                     }
                 } catch {
-                    completionHandlerForLogin(nil, nil, nil, -1)
+                    completionHandlerForLogin(nil, nil, nil, nil, nil, -1)
                 }
             }
         }
@@ -104,7 +108,7 @@ class Client {
     }
     
     // Read Student Info
-    func queryLocation(_ uniqueId: String, _ completionHandlerForLocation: @escaping (_ result: [AnyObject]?, _ error: Error?, _ other: Int) -> Void) {
+    func queryLocation(_ uniqueId: String, _ completionHandlerForLocation: @escaping (_ location: StudentLocation?, _ error: Error?, _ other: Int) -> Void) {
         let urlString = "https://parse.udacity.com/parse/classes/StudentLocation?where=%7B%22uniqueKey%22%3A%22\(uniqueId)%22%7D"
         let url = URL(string: urlString)
         var request = URLRequest(url: url!)
@@ -118,7 +122,12 @@ class Client {
                 do {
                     let parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! [String:[AnyObject]]
                     if let results = parsedResult["results"] {
-                        completionHandlerForLocation(results, nil, 0)
+                        if results.count > 0 {
+                            let location = StudentLocation(location: results[0] as! Dictionary<String, AnyObject>)
+                            completionHandlerForLocation(location, nil, 0)
+                        } else {
+                            completionHandlerForLocation(nil, nil, 0)
+                        }
                     }
                 } catch {
                     completionHandlerForLocation(nil, nil, -1)
@@ -129,7 +138,7 @@ class Client {
     }
     
     // Get Students Info
-    func getLocations(_ completionHandlerForLocations: @escaping (_ result: [AnyObject]?, _ error: Error?, _ other: Int) -> Void) {
+    func getLocations(_ completionHandlerForLocations: @escaping (_ locations: [StudentLocation]?, _ error: Error?, _ other: Int) -> Void) {
         var request = URLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation?limit=100&order=-updatedAt")!)
         request.httpMethod = "GET"
         request.addValue("application/json", forHTTPHeaderField: "Accept")
@@ -144,7 +153,12 @@ class Client {
                 do {
                     let parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! [String:[AnyObject]]
                     if let results = parsedResult["results"] {
-                        completionHandlerForLocations(results, nil, 0)
+                        var locations: [StudentLocation] = []
+                        for result in results {
+                            let location = StudentLocation(location: result as! Dictionary<String, AnyObject>)
+                            locations.append(location)
+                        }
+                        completionHandlerForLocations(locations, nil, 0)
                     }                    
                 } catch {
                     completionHandlerForLocations(nil, nil, -1)
@@ -206,10 +220,8 @@ class Client {
 
     // MARK: Shared Instance
     
-    class func sharedInstance() -> Client {
-        struct Singleton {
-            static var sharedInstance = Client()
-        }
-        return Singleton.sharedInstance
-    }
+    private init() {}
+    
+    static let sharedInstance = Client()
+
 }

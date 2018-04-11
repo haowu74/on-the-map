@@ -33,7 +33,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var studentLocation = StudentLocation(location: nil)
     
-    let client = Client.sharedInstance()
+    let client = Client.sharedInstance
     
     // MARK: Life Cycle
     
